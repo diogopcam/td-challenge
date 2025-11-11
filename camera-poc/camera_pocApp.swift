@@ -10,6 +10,8 @@ import SwiftData
 
 @main
 struct camera_pocApp: App {
+    @StateObject private var vm = CameraVM()
+    
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Item.self,
@@ -25,7 +27,7 @@ struct camera_pocApp: App {
 
     var body: some Scene {
         WindowGroup {
-            SimpleCameraView()
+            CameraView(vm: vm)
         }
         .modelContainer(sharedModelContainer)
     }

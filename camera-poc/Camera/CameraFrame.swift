@@ -17,6 +17,7 @@ struct CameraFrame: UIViewRepresentable {
         let previewLayer = AVCaptureVideoPreviewLayer(session: session)
         previewLayer.videoGravity = .resizeAspectFill
         previewLayer.frame = view.frame
+        previewLayer.connection?.videoOrientation = .landscapeRight
         
         view.layer.addSublayer(previewLayer)
         return view
