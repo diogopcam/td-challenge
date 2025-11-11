@@ -76,11 +76,6 @@ class CameraVM: NSObject, ObservableObject {
     }
 
     func takePhoto() {
-        
-        if (self.capturedImage != nil) {
-            print("You can't take another photo before revealing the current one.")
-        }
-        
         let settings = AVCapturePhotoSettings()
 
         if let connection = output.connection(with: .video) {
@@ -89,6 +84,24 @@ class CameraVM: NSObject, ObservableObject {
 
         output.capturePhoto(with: settings, delegate: self)
     }
+    
+    func cropToSquare(image: UIImage) -> UIImage? {
+        let originalWidth  = image.size.width
+        let originalHeight = image.size.height
+        let squareSize = min(originalWidth, originalHeight)
+
+        let x = (originalWidth - squareSize) / 2
+        let y = (originalHeight - squareSize) / 2
+
+        let cropRect = CGRect(x: x, y: y, width: squareSize, height: squareSize)
+
+        guard let cgImage = image.cgImage?.cropping(to: cropRect) else {
+            return nil
+        }
+
+        return UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
+    }
+
 }
 
 extension CameraVM: AVCapturePhotoCaptureDelegate {
@@ -106,10 +119,13 @@ extension CameraVM: AVCapturePhotoCaptureDelegate {
             errorMessage = "Não foi possível processar a imagem"
             return
         }
-
+        
         DispatchQueue.main.async {
-            self.capturedImage = image
-            print("Photo stored!")
+            if let squared = self.cropToSquare(image: image) {
+                self.capturedImage = squared
+            } else {
+                self.capturedImage = image
+            }
         }
     }
 }
