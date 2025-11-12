@@ -8,8 +8,6 @@
 import SwiftUI
 import AVFoundation
 import Combine
-import SwiftUI
-import AVFoundation
 
 class CameraVM: NSObject, ObservableObject {
 
