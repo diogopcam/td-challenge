@@ -15,6 +15,13 @@ class CameraVM: NSObject, ObservableObject {
     @Published var capturedImage: UIImage?
     @Published var errorMessage: String?
     @Published var isFlashOn: Bool = false
+    @Published var timerDelay: Int = 0
+    @Published var countdown: Int? = nil
+    @Published var exposure: Float = 0.0 {
+        didSet {
+            setExposureBias(to: exposure)
+        }
+    }
 
     let session = AVCaptureSession()
     let output = AVCapturePhotoOutput()
@@ -90,6 +97,24 @@ class CameraVM: NSObject, ObservableObject {
 
         return UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
     }
+    
+    private func startCountdown() {
+        countdown = timerDelay
+        var remaining = timerDelay
+
+        Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
+            remaining -= 1
+            DispatchQueue.main.async {
+                if remaining > 0 {
+                    self.countdown = remaining
+                } else {
+                    timer.invalidate()
+                    self.countdown = nil
+                    self.captureNow()
+                }
+            }
+        }
+    }
 
 }
 
@@ -122,21 +147,43 @@ extension CameraVM: AVCapturePhotoCaptureDelegate {
 // MARK: Button actions
 extension CameraVM {
     func takePhoto() {
+        if timerDelay > 0 {
+            startCountdown()
+        } else {
+            captureNow()
+        }
+    }
+    
+    private func captureNow() {
         let settings = AVCapturePhotoSettings()
 
-        // Applying the flash
+        // Flash
         if output.supportedFlashModes.contains(.on) {
             settings.flashMode = isFlashOn ? .on : .off
         }
+
         if let connection = output.connection(with: .video) {
             connection.videoOrientation = .landscapeRight
         }
 
         output.capturePhoto(with: settings, delegate: self)
+        print("Photo captured!")
     }
     
     func toggleFlash() {
         isFlashOn.toggle()
         print("The flash state is \(isFlashOn ? "on" : "off")")
+    }
+    
+    private func setExposureBias(to value: Float) {
+        guard let device = AVCaptureDevice.default(for: .video) else { return }
+
+        do {
+            try device.lockForConfiguration()
+            device.setExposureTargetBias(value, completionHandler: nil)
+            device.unlockForConfiguration()
+        } catch {
+            print("Error setting exposure bias: \(error)")
+        }
     }
 }
