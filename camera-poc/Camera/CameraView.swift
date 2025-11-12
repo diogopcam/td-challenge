@@ -26,11 +26,10 @@ struct CameraView: View {
                             .scaledToFit()
                             .frame(width: 120, height: 120)
                     } else {
-                        Text("Nenhuma imagem foi\n capturada ainda")
+                        Text("Any image was captured yet")
                     }
                 }
 
-                
                 CameraFrame(session: vm.session)
                     .frame(width: 341, height: 341)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -46,6 +45,13 @@ struct CameraView: View {
                                 .stroke(Color.black, lineWidth: 3)
                                 .frame(width: 80, height: 80)
                         )
+                }
+                
+                Button(action: {
+                    vm.toggleFlash()
+                }) {
+                    Image(systemName: vm.isFlashOn ? "bolt.fill" : "bolt.slash.fill")
+                            .foregroundColor(vm.isFlashOn ? .yellow : .white)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

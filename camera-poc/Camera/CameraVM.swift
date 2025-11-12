@@ -14,6 +14,7 @@ class CameraVM: NSObject, ObservableObject {
     @Published var isCameraAuthorized = false
     @Published var capturedImage: UIImage?
     @Published var errorMessage: String?
+    @Published var isFlashOn: Bool = false
 
     let session = AVCaptureSession()
     let output = AVCapturePhotoOutput()
@@ -72,16 +73,6 @@ class CameraVM: NSObject, ObservableObject {
             self.session.startRunning()
         }
     }
-
-    func takePhoto() {
-        let settings = AVCapturePhotoSettings()
-
-        if let connection = output.connection(with: .video) {
-            connection.videoOrientation = .landscapeRight
-        }
-
-        output.capturePhoto(with: settings, delegate: self)
-    }
     
     func cropToSquare(image: UIImage) -> UIImage? {
         let originalWidth  = image.size.width
@@ -108,13 +99,13 @@ extension CameraVM: AVCapturePhotoCaptureDelegate {
                      error: Error?) {
 
         if let error = error {
-            errorMessage = "Erro ao capturar foto: \(error.localizedDescription)"
+            errorMessage = "Error to capture photo: \(error.localizedDescription)"
             return
         }
 
         guard let imageData = photo.fileDataRepresentation(),
               let image = UIImage(data: imageData) else {
-            errorMessage = "Não foi possível processar a imagem"
+            errorMessage = "It wasn't possible to render the image"
             return
         }
         
@@ -125,5 +116,27 @@ extension CameraVM: AVCapturePhotoCaptureDelegate {
                 self.capturedImage = image
             }
         }
+    }
+}
+
+// MARK: Button actions
+extension CameraVM {
+    func takePhoto() {
+        let settings = AVCapturePhotoSettings()
+
+        // Applying the flash
+        if output.supportedFlashModes.contains(.on) {
+            settings.flashMode = isFlashOn ? .on : .off
+        }
+        if let connection = output.connection(with: .video) {
+            connection.videoOrientation = .landscapeRight
+        }
+
+        output.capturePhoto(with: settings, delegate: self)
+    }
+    
+    func toggleFlash() {
+        isFlashOn.toggle()
+        print("The flash state is \(isFlashOn ? "on" : "off")")
     }
 }
