@@ -9,7 +9,7 @@ import SwiftUI
 import AVFoundation
 import Combine
 
-class CameraVM: NSObject, ObservableObject {
+class CameraVM: NSObject, ObservableObject{
 
     @Published var isCameraAuthorized = false
     @Published var capturedImage: UIImage?
@@ -118,6 +118,7 @@ class CameraVM: NSObject, ObservableObject {
 
 }
 
+// MARK: Delegate responsible for dealing
 extension CameraVM: AVCapturePhotoCaptureDelegate {
     func photoOutput(_ output: AVCapturePhotoOutput,
                      didFinishProcessingPhoto photo: AVCapturePhoto,

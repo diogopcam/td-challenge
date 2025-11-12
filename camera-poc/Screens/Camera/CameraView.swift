@@ -80,7 +80,7 @@ struct CameraView: View {
     }
 }
 
-// Extensão para usar UIImage com Binding opcional
+// Extension to use UIImage with optional Binding
 extension UIImage: @retroactive Identifiable {
     public var id: String { UUID().uuidString }
 }
