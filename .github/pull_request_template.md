@@ -19,7 +19,15 @@ Exemplo:
 -->
 
 ## Testes
-<!-- Como validar esta PR? -->
-- [ ] Testado em iPhone real
-- [ ] Testado em simulador
-- [ ] Unit Tests
+<!-- Como esta PR foi testada e como o revisor pode validar?
+
+Exemplo:
+- Testado no iPhone 14 (iOS 17) executando fluxo completo de login
+- Testado no simulador iPhone SE
+- Adicionados testes unitários para validação de email
+
+Passos para validação:
+1. Abrir o app
+2. Ir em Login
+3. Testar campo de email vazio e inválido
+-->
