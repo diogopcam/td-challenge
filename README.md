@@ -12,7 +12,7 @@ Este projeto utiliza um modelo estruturado de Gitflow para organizar o desenvolv
 
 ### Branches de Trabalho
 
-- **feature/nome-da-feature**  
+- **feat/nome-da-feature**  
   Utilizada para desenvolvimento de novas funcionalidades.
 
 - **fix/nome-do-fix**  
