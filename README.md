@@ -16,7 +16,7 @@ Este projeto utiliza um modelo estruturado de Gitflow para organizar o desenvolv
   Utilizada para desenvolvimento de novas funcionalidades.
 
 - **fix/nome-do-fix**  
-  Utilizada para correções não críticas.
+  Utilizada para correções.
 
 ### Regras Gerais
 
