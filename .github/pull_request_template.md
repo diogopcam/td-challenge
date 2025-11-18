@@ -1,3 +1,11 @@
+<!-- 
+Título sugerido:
+[USER STORY] ([FEAT ou FIX]) Nome da task no Airtable
+
+Exemplo:
+US01 (FEAT) - Adaptar visor do modelo 3D para exibir o preview da câmera
+-->
+
 ## Descrição
 <!-- Descreva o propósito deste PR.
 Seja específico, mas conciso: explique o que mudou e por quê, sem entrar em detalhes do código.
