@@ -23,9 +23,12 @@ jobs:
         with:
           xcode-version: latest
 
+      - name: Show available simulators
+        run: xcrun simctl list devices
+
       - name: Run Tests
         run: |
           xcodebuild \
             -scheme camera-poc \
-            -destination 'platform=iOS Simulator, OS=latest, name=iPhone 15' \
+            -destination "platform=iOS Simulator,OS=17.6,name=iPhone 14" \
             clean test | xcpretty
