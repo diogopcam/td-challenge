@@ -23,12 +23,22 @@ jobs:
         with:
           xcode-version: latest-stable
 
-      - name: List Available Devices
-        run: xcrun simctl list devices
+      - name: Boot iPhone Simulator
+        run: |
+          # Inicializar um simulador específico
+          xcrun simctl boot "iPhone 16 Pro"
+          
+          # Verificar se inicializou corretamente
+          xcrun simctl list devices | grep "iPhone 16 Pro"
 
       - name: Run Tests
         run: |
           xcodebuild \
             -scheme td-tests \
-            -destination 'platform=iOS Simulator,OS=latest' \
+            -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.4' \
             clean test
+
+      - name: Shutdown Simulator
+        if: always()
+        run: |
+          xcrun simctl shutdown "iPhone 16 Pro"
