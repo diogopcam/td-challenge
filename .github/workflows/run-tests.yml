@@ -27,5 +27,5 @@ jobs:
         run: |
           xcodebuild \
             -scheme camera-poc \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination 'platform=iOS Simulator,name=iPhone 14' \
             clean test | xcpretty
