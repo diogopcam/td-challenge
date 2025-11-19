@@ -1,44 +1,38 @@
-name: Run iOS Tests (PR)
+name: iOS PR Quality Check
 
+# Configuração do gatilho (Trigger)
 on:
   pull_request:
-    branches:
-      - develop
-      - main
-  push:
-    branches:
-      - develop
+    branches: [ "develop" ] # Altere para 'develop' se for o caso
+    types: [opened, synchronize, reopened]
+    # opened: Quando cria o PR
+    # synchronize: Quando faz um push novo no mesmo PR
+    # reopened: Se o PR foi fechado e aberto de novo
 
 jobs:
-  build-and-test:
-    name: Build and Test iOS Project
-    runs-on: macos-latest
+  test:
+    name: Testes Unitários (iOS 17)
+    runs-on: macos-14
 
     steps:
-      - name: Checkout repository
+      - name: Checkout do código
         uses: actions/checkout@v4
 
-      - name: Set up Xcode
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest-stable
+      - name: Selecionar Xcode 15.4
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
 
-      - name: Boot iPhone Simulator
-        run: |
-          # Inicializar um simulador específico
-          xcrun simctl boot "iPhone 16 Pro"
-          
-          # Verificar se inicializou corretamente
-          xcrun simctl list devices | grep "iPhone 16 Pro"
+      - name: Instalar xcbeautify
+        run: brew install xcbeautify
 
-      - name: Run Tests
+      - name: Rodar Testes
+        # Se este passo falhar, o GitHub marcará o PR com um "X" vermelho
         run: |
-          xcodebuild \
-            -scheme td-tests \
-            -destination 'platform=iOS Simulator,name=iPhone 16 Pro,OS=18.4' \
-            clean test
-
-      - name: Shutdown Simulator
-        if: always()
-        run: |
-          xcrun simctl shutdown "iPhone 16 Pro"
+          set -o pipefail && xcodebuild test \
+            -scheme "td-tests" \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.5' \
+            -testPlan "td-tests" \
+            -resultBundlePath TestResults \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            | xcbeautify
