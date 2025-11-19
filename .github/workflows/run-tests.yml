@@ -27,5 +27,5 @@ jobs:
         run: |
           xcodebuild \
             -scheme td-tests \
-            -destination 'platform=iOS Simulator,OS=18.4,name=iPhone 16 Pro' \
+            -destination 'platform=iOS Simulator' \
             clean test | xcpretty
