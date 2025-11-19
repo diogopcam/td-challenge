@@ -25,11 +25,10 @@ jobs:
         run: brew install xcbeautify
 
       - name: Rodar Testes
-        # Se este passo falhar, o GitHub marcará o PR com um "X" vermelho
         run: |
           set -o pipefail && xcodebuild test \
             -scheme "td-tests" \
-            -destination 'platform=iOS Simulator,name=iPhone 15,OS=17.5' \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
             -testPlan "td-tests" \
             -resultBundlePath TestResults \
             CODE_SIGN_IDENTITY="" \
