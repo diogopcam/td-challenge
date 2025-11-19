@@ -3,11 +3,11 @@ name: iOS PR Quality Check
 # Configuração do gatilho (Trigger)
 on:
   pull_request:
-    branches: [ "develop" ] # Altere para 'develop' se for o caso
-    types: [opened, synchronize, reopened]
-    # opened: Quando cria o PR
-    # synchronize: Quando faz um push novo no mesmo PR
-    # reopened: Se o PR foi fechado e aberto de novo
+    branches: 
+      - develop
+  push:
+    branches:
+      - develop
 
 jobs:
   test:
