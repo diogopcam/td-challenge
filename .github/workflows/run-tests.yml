@@ -1,37 +1,30 @@
-name: iOS PR Quality Check
+    name: Swift CI
 
-# Configuração do gatilho (Trigger)
-on:
-  pull_request:
-    branches: 
-      - develop
-  push:
-    branches:
-      - develop
+    on:
+      push:
+        branches: [ "develop" ]
+      pull_request:
+        branches: [ "develop" ]
 
-jobs:
-  test:
-    name: Testes Unitários (iOS 17)
-    runs-on: macos-15
+    jobs:
+      build-and-test:
+        runs-on: macos-latest # Or other suitable runner like ubuntu-latest for SwiftPM projects
 
-    steps:
-      - name: Checkout do código
-        uses: actions/checkout@v4
+        steps:
+        - uses: actions/checkout@v4 # Checkout the repository code
 
-      # - name: Selecionar Xcode 15.4
-      #   run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer
+        # - name: Select Xcode version (if needed)
+        #   run: sudo xcode-select -s /Applications/Xcode_15.3.app/Contents/Developer # Example for specific Xcode version
 
-      - name: Instalar xcbeautify
-        run: brew install xcbeautify
+        # - name: Build Swift Package
+        #   run: swift build -v # Build your Swift package
 
-      - name: Rodar Testes
-        run: |
-          set -o pipefail && xcodebuild test \
-            -scheme "td-tests" \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
-            -testPlan "td-tests" \
-            -resultBundlePath TestResults \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            | xcbeautify
+        - name: List available simulators
+          run: xcrun simctl list devices
+        
+        - name: Build and Test Xcode Project
+          run: |
+            xcodebuild test \
+              -scheme "camera-poc" \
+              -destination 'platform=iOS Simulator,name=iPhone 16' \
+              | xcpretty
