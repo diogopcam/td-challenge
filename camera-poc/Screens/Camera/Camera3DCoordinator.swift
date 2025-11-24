@@ -10,9 +10,9 @@ import RealityKit
 import AVFoundation
 import Combine
 
-class Coordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
+class Camera3DCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
 
-    var vm: CameraVM
+    var vm: any CameraVMProtocol
     
     private var cancellables = Set<AnyCancellable>()
 
@@ -34,18 +34,14 @@ class Coordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     private var dragStartX: CGFloat = 0
     private var exposureAtDragStart: Float = 0
 
-    init(vm: CameraVM){
+    init(vm: any CameraVMProtocol) {
         self.vm = vm
         super.init()
-        print("Coordinator created")
         
-        vm.$currentFrame
+        vm.currentFramePublisher
             .receive(on: DispatchQueue.main)
             .sink { [weak self] frame in
-                print("Coordinator received frame: \(frame != nil ? "yes" : "NIL")")
-                
                 if let frame = frame, let root = self?.rootModelEntity {
-                    print("Applying frame in the 3D model")
                     self?.applyCameraImage(frame, to: root)
                 } else {
                     if frame == nil { print("Frame is nil") }
@@ -59,46 +55,13 @@ class Coordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         guard let arView = arView,
               let knob = knobEntity else { return nil }
         
-        // posição do knob em coordenadas de mundo
         let worldPosition = knob.position(relativeTo: nil)
         
-        // projeta para coordenadas de tela
         if let screenPoint = arView.project(worldPosition) {
             return screenPoint
         } else {
             return nil
         }
-    }
-    
-    // MARK: - Exposição (knob → rotação + câmera)
-    func applyExposure(_ exposure: Float) {
-        // clamp entre -2 e 2
-        let clampedKnob = max(-2.0, min(2.0, exposure))
-        knobValue = clampedKnob
-        
-        let logicalExposure = -clampedKnob
-        currentExposure = logicalExposure
-
-        // 1) Rotação do knob (mantém igual)
-        if let knob = knobEntity {
-            // -2 ... 2 → -135° ... 135°
-            let degreesPerStop: Float = 67.5
-            let angleDegrees = clampedKnob * degreesPerStop
-            let angleRadians = angleDegrees * .pi / 180
-
-            let rotationQuat = simd_quatf(
-                angle: angleRadians,
-                axis: SIMD3<Float>(1, 0, 0)
-            )
-
-            if let base = baseKnobOrientation {
-                knob.orientation = rotationQuat * base
-            } else {
-                knob.orientation = rotationQuat
-            }
-        }
-
-        vm.exposure = logicalExposure
     }
 
     // MARK: Function responsible for loading the camera video session and applying
@@ -146,17 +109,6 @@ class Coordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         var current: Entity? = entity
         while let e = current {
             if e.name == "CameraBody" { return true }
-            current = e.parent
-        }
-        return false
-    }
-    
-    private func isPartOfKnob(_ entity: Entity) -> Bool {
-        var current: Entity? = entity
-        while let e = current {
-            if e.name == "Cylinder" {
-                return true
-            }
             current = e.parent
         }
         return false
@@ -243,5 +195,44 @@ class Coordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         default:
             break
         }
+    }
+    
+    // MARK: Function responsible for dealing with knob's rotation and exposure application
+    func applyExposure(_ exposure: Float) {
+        let clampedKnob = max(-2.0, min(2.0, exposure))
+        knobValue = clampedKnob
+        
+        let logicalExposure = -clampedKnob
+        currentExposure = logicalExposure
+
+        if let knob = knobEntity {
+            let degreesPerStop: Float = 67.5
+            let angleDegrees = clampedKnob * degreesPerStop
+            let angleRadians = angleDegrees * .pi / 180
+
+            let rotationQuat = simd_quatf(
+                angle: angleRadians,
+                axis: SIMD3<Float>(1, 0, 0)
+            )
+
+            if let base = baseKnobOrientation {
+                knob.orientation = rotationQuat * base
+            } else {
+                knob.orientation = rotationQuat
+            }
+        }
+
+        vm.exposure = logicalExposure
+    }
+    
+    private func isPartOfKnob(_ entity: Entity) -> Bool {
+        var current: Entity? = entity
+        while let e = current {
+            if e.name == "Cylinder" {
+                return true
+            }
+            current = e.parent
+        }
+        return false
     }
 }

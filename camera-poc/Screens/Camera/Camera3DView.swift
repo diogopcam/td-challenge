@@ -1,13 +1,18 @@
 import SwiftUI
 import RealityKit
-import AVFoundation // 1. Importar AVFoundation
+import AVFoundation
 
 // MARK: Struct responsible for "bringing 3D to code"
-struct Modelo3DView: UIViewRepresentable {
+struct Camera3DView: UIViewRepresentable {
+    @ObservedObject var vm: CameraVM
+    
+    init(vm: CameraVM){
+        self.vm = vm
+    }
     
     // MARK: Function responsible for being the bridge between user's interactions and camera functionalities
-    func makeCoordinator() -> Coordinator {
-        Coordinator(vm: CameraVM())
+    func makeCoordinator() -> Camera3DCoordinator {
+        Camera3DCoordinator(vm: vm)
     }
     
     func dumpHierarchy(_ entity: Entity, level: Int = 0) {
@@ -18,7 +23,6 @@ struct Modelo3DView: UIViewRepresentable {
         }
     }
 
-    
     func makeUIView(context: Context) -> ARView {
         let arView = ARView(
             frame: .zero,

@@ -9,31 +9,33 @@ import SwiftUI
 import AVFoundation
 import Combine
 
-class CameraVM: NSObject, ObservableObject {
+class CameraVM: NSObject, ObservableObject, CameraVMProtocol {
 
+    override init() {
+        super.init()
+        checkCameraPermission()
+    }
+    
     @Published var isCameraAuthorized = false
     @Published var capturedImage: UIImage?
     @Published var errorMessage: String?
     @Published var isFlashOn: Bool = false
     @Published var timerDelay: Int = 0
     @Published var countdown: Int? = nil
+    @Published var currentFrame: UIImage?
+    
+    var currentFramePublisher: Published<UIImage?>.Publisher { $currentFrame }
+    
     @Published var exposure: Float = 0.0 {
         didSet {
             setExposureBias(to: exposure)
         }
     }
-    @Published var currentFrame: UIImage?
 
     let session = AVCaptureSession()
     let output = AVCapturePhotoOutput()
     let videoOutput = AVCaptureVideoDataOutput()
-    
     private let context = CIContext()
-    
-    override init() {
-        super.init()
-        checkCameraPermission()
-    }
     
     func checkCameraPermission() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
@@ -58,7 +60,7 @@ class CameraVM: NSObject, ObservableObject {
         }
     }
     
-    private func setupCamera() {
+    func setupCamera() {
         guard let device = AVCaptureDevice.default(.builtInWideAngleCamera,
                                                    for: .video,
                                                    position: .back),
@@ -87,8 +89,7 @@ class CameraVM: NSObject, ObservableObject {
         }
     }
     
-    // MARK: Video session configurations
-    private func setupVideoFeed() {
+    func setupVideoFeed() {
         videoOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "camera.feed.queue"))
         
         if session.canAddOutput(videoOutput) {
@@ -97,24 +98,6 @@ class CameraVM: NSObject, ObservableObject {
         
         if let videoConnection = videoOutput.connection(with: .video) {
             videoConnection.videoOrientation = .landscapeRight
-        }
-    }
-    
-    // MARK: Frame processor as it was in the Coordinator
-    private func processVideoFrame(_ sampleBuffer: CMSampleBuffer) {
-        guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-        
-        let ciImage = CIImage(cvPixelBuffer: imageBuffer)
-        
-        let transform = CGAffineTransform(rotationAngle: .pi/2) // 90° clockwise
-        let rotatedImage = ciImage.transformed(by: transform)
-        
-        guard let cgImage = context.createCGImage(rotatedImage, from: rotatedImage.extent) else { return }
-        
-        let processedImage = UIImage(cgImage: cgImage, scale: 1.0, orientation: .up)
-        
-        DispatchQueue.main.async {
-            self.currentFrame = processedImage
         }
     }
     
@@ -182,12 +165,30 @@ extension CameraVM: AVCapturePhotoCaptureDelegate {
     }
 }
 
-// MARK: Delegate responsible for dealing with photo capture
+// MARK: Delegate responsible for dealing with video capture (live feed)
 extension CameraVM: AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ output: AVCaptureOutput,
                       didOutput sampleBuffer: CMSampleBuffer,
                       from connection: AVCaptureConnection) {
         processVideoFrame(sampleBuffer)
+    }
+    
+    // MARK: Frame processor as it was in the Coordinator
+    private func processVideoFrame(_ sampleBuffer: CMSampleBuffer) {
+        guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+        
+        let ciImage = CIImage(cvPixelBuffer: imageBuffer)
+        
+        let transform = CGAffineTransform(rotationAngle: .pi/2)
+        let rotatedImage = ciImage.transformed(by: transform)
+        
+        guard let cgImage = context.createCGImage(rotatedImage, from: rotatedImage.extent) else { return }
+        
+        let processedImage = UIImage(cgImage: cgImage, scale: 1.0, orientation: .up)
+        
+        DispatchQueue.main.async {
+            self.currentFrame = processedImage
+        }
     }
 }
 
@@ -201,7 +202,7 @@ extension CameraVM {
         }
     }
     
-    private func captureNow() {
+    func captureNow() {
         let settings = AVCapturePhotoSettings()
 
         if output.supportedFlashModes.contains(.on) {
@@ -221,7 +222,7 @@ extension CameraVM {
         print("The flash state is \(isFlashOn ? "on" : "off")")
     }
     
-    private func setExposureBias(to value: Float) {
+    func setExposureBias(to value: Float) {
         guard let device = AVCaptureDevice.default(for: .video) else { return }
 
         do {
