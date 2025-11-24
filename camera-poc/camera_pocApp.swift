@@ -27,7 +27,8 @@ struct camera_pocApp: App {
 
     var body: some Scene {
         WindowGroup {
-            CameraView(vm: vm)
+//            CameraView(vm: vm)
+            Modelo3DView()
         }
         .modelContainer(sharedModelContainer)
     }
