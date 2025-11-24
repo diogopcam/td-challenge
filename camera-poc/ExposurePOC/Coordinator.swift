@@ -16,47 +16,44 @@ class Coordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     private var cancellables = Set<AnyCancellable>()
 
+    var rootModelEntity: Entity?
+    var cameraBody: Entity?
+    weak var arView: ARView?
+    private let context = CIContext()
+    
+    // MARK: Exposure's knob
+    var knobEntity: Entity?
+    var baseKnobOrientation: simd_quatf?
+    var dragStartAngle: Float = 0.0
+    var lastAngle: Float = 0.0
+    var knobValue: Float = 0.0
+    var knobCenterScreen: CGPoint = .zero
+    var currentExposure: Float = 0.0
+
+    private var isDraggingKnob = false
+    private var dragStartX: CGFloat = 0
+    private var exposureAtDragStart: Float = 0
+
     init(vm: CameraVM){
         self.vm = vm
         super.init()
-        print("🎯 Coordinator FOI CRIADO!") 
+        print("Coordinator created")
         
         vm.$currentFrame
             .receive(on: DispatchQueue.main)
             .sink { [weak self] frame in
-                print("Coordinator recebeu frame: \(frame != nil ? "SIM" : "NIL")")
+                print("Coordinator received frame: \(frame != nil ? "yes" : "NIL")")
                 
                 if let frame = frame, let root = self?.rootModelEntity {
-                    print("Aplicando frame no modelo 3D")
+                    print("Applying frame in the 3D model")
                     self?.applyCameraImage(frame, to: root)
                 } else {
-                    if frame == nil { print("❌ Frame é nil") }
-                    if self?.rootModelEntity == nil { print("❌ rootModelEntity é nil") }
+                    if frame == nil { print("Frame is nil") }
+                    if self?.rootModelEntity == nil { print("rootModelEntity is nil") }
                 }
             }
-            .store(in: &cancellables) // ⚠️ FALTANDO!
+            .store(in: &cancellables)
     }
-    
-    var captureSession: AVCaptureSession?
-    var rootModelEntity: Entity?
-    var cameraBody: Entity?
-    var cameraBodyAnimation: AnimationResource?
-    weak var arView: ARView?
-    private let context = CIContext()
-    
-    var captureDevice: AVCaptureDevice?
-    
-    var knobEntity: Entity?
-    var baseKnobOrientation: simd_quatf?
-    var currentExposure: Float = 0.0
-    var knobValue: Float = 0.0
-    var knobCenterScreen: CGPoint = .zero
-    var dragStartAngle: Float = 0.0
-    private var lastAngle: Float = 0.0
-    
-    private var isDraggingKnob = false
-    private var dragStartX: CGFloat = 0
-    private var exposureAtDragStart: Float = 0
     
     private func knobCenterInScreen() -> CGPoint? {
         guard let arView = arView,
@@ -82,7 +79,7 @@ class Coordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         let logicalExposure = -clampedKnob
         currentExposure = logicalExposure
 
-        // Knob rotation
+        // 1) Rotação do knob (mantém igual)
         if let knob = knobEntity {
             // -2 ... 2 → -135° ... 135°
             let degreesPerStop: Float = 67.5
@@ -91,7 +88,7 @@ class Coordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
 
             let rotationQuat = simd_quatf(
                 angle: angleRadians,
-                axis: SIMD3<Float>(1, 0, 0) // eixo X, igual no Blender
+                axis: SIMD3<Float>(1, 0, 0)
             )
 
             if let base = baseKnobOrientation {
@@ -101,29 +98,16 @@ class Coordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             }
         }
 
-        // 2) Exposição da câmera (bias)
-        if let device = captureDevice {
-            do {
-                try device.lockForConfiguration()
-                let bias = logicalExposure
-                device.setExposureTargetBias(bias, completionHandler: nil)
-                device.unlockForConfiguration()
-            } catch {
-                print("Erro ao ajustar exposição da câmera: \(error)")
-            }
-        }
+        vm.exposure = logicalExposure
     }
 
+    // MARK: Function responsible for loading the camera video session and applying
     func applyCameraImage(_ image: UIImage, to root: Entity) {
-        // 1. Acha QUALQUER entidade chamada "PhotoPlane"
         guard let photoPlaneEntity = root.findEntity(named: "PhotoPlane") else {
-            print("ERRO CRÍTICO: Não existe nenhuma entidade chamada 'PhotoPlane'.")
+            print("There is no entity called 'PhotoPlane'.")
             return
         }
         
-        //print("Achei 'PhotoPlane' do tipo: \(type(of: photoPlaneEntity))")
-        
-        // 2. Se já for ModelEntity, beleza. Se não for, procura um filho ModelEntity
         let targetModel: ModelEntity
         
         if let model = photoPlaneEntity as? ModelEntity {
@@ -131,36 +115,32 @@ class Coordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         } else if let childModel = photoPlaneEntity.children.first(where: { $0 is ModelEntity }) as? ModelEntity {
             targetModel = childModel
         } else {
-            print("ERRO: 'PhotoPlane' não é ModelEntity e não tem filho ModelEntity.")
+            print("Error in ApplyCameraImage")
             return
         }
         
-        // 3. Cria textura a partir da imagem
         guard let cgImage = image.cgImage else { return }
         
         let texture: TextureResource
+        
         do {
             texture = try TextureResource.generate(
                 from: cgImage,
                 options: .init(semantic: .color)
             )
         } catch {
-            print("ERRO: Falha ao gerar textura a partir da imagem da câmera: \(error)")
+            print("Error in ApplyCameraImage: \(error)")
             return
         }
         
-        // 4. Material sem influência de luz
         var material = UnlitMaterial()
         material.color = .init(
             tint: .white,
             texture: .init(texture)
         )
         
-        // 5. Aplica na malha da polaroid
         targetModel.model?.materials = [material]
     }
-    
-    // MARK: - Toque na câmera para animar
 
     private func isPartOfCameraBody(_ entity: Entity) -> Bool {
         var current: Entity? = entity
@@ -174,7 +154,7 @@ class Coordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     private func isPartOfKnob(_ entity: Entity) -> Bool {
         var current: Entity? = entity
         while let e = current {
-            if e.name == "Cylinder" {      // mesmo nome usado no findEntity
+            if e.name == "Cylinder" {
                 return true
             }
             current = e.parent
@@ -182,36 +162,32 @@ class Coordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         return false
     }
     
+    // MARK: Function responsible for dealing with user's interaction with the exposure's knob
     @objc func handlePan(_ recognizer: UIPanGestureRecognizer) {
         guard let arView = arView else { return }
         let location = recognizer.location(in: arView)
 
         switch recognizer.state {
         case .began:
-            // verifica se começou em cima do knob
             if let entity = arView.entity(at: location),
                isPartOfKnob(entity) {
                 isDraggingKnob = true
-                print("🌀 Começou arrasto no knob")
+                print("Knob is being manipulated")
 
-                // 1) Calcula o centro do knob na tela
                 if let center = knobCenterInScreen() {
                     knobCenterScreen = center
                 } else {
-                    // fallback: centro da view se não conseguir projetar
                     knobCenterScreen = CGPoint(x: arView.bounds.midX,
                                                y: arView.bounds.midY)
                 }
 
-                // 2) Ângulo inicial entre centro do knob e ponto de toque
                 let dx = Float(location.x - knobCenterScreen.x)
                 let dy = Float(location.y - knobCenterScreen.y)
                 let startAngle = atan2(dy, dx)
 
                 dragStartAngle = startAngle
-                lastAngle = startAngle          // 👈 agora usamos incrementalmente
+                lastAngle = startAngle
 
-                // 3) Valor inicial do KNOB
                 exposureAtDragStart = knobValue
             } else {
                 isDraggingKnob = false
@@ -220,22 +196,18 @@ class Coordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         case .changed:
             guard isDraggingKnob else { return }
 
-            // vetor do centro do knob até o dedo
             let dx = Float(location.x - knobCenterScreen.x)
             let dy = Float(location.y - knobCenterScreen.y)
 
-            // evita instabilidade muito perto do centro
             let distance = hypot(dx, dy)
-            if distance < 20 {        // 20px de raio de segurança (ajustável)
+            if distance < 20 {
                 return
             }
 
             let currentAngle = atan2(dy, dx)
 
-            // diferença de ângulo em relação AO ÚLTIMO FRAME
             var deltaAngle = currentAngle - lastAngle
 
-            // normaliza para [-π, π] para evitar saltos grandes
             let twoPi = Float.pi * 2
             if deltaAngle > Float.pi {
                 deltaAngle -= twoPi
@@ -243,17 +215,12 @@ class Coordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 deltaAngle += twoPi
             }
 
-            // atualiza lastAngle pro próximo frame
             lastAngle = currentAngle
 
-            // mapeia delta de ângulo → delta de exposição
-            // 270° (±135°) de giro total → 4 "stops" (-2 ... 2)
-            let maxAngle = Float(270.0 * .pi / 180.0) // 270° em radianos
+            let maxAngle = Float(270.0 * .pi / 180.0)
 
-            // se quiser inverter o sentido do gesto, troca o sinal desse "-"
             let deltaStops = -(deltaAngle / maxAngle) * 4.0
 
-            // acumula no valor atual do KNOB
             let unclampedKnob = knobValue + deltaStops
             let newKnobValue = max(-2.0, min(2.0, unclampedKnob))
 
@@ -263,20 +230,15 @@ class Coordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         case .ended, .cancelled, .failed:
             isDraggingKnob = false
 
-            // 1) Pega a exposição lógica atual e arredonda p/ 1 casa decimal
             var snappedLogical = (currentExposure * 10).rounded() / 10
 
-            // 2) Garante que continua dentro do intervalo [-2, 2]
             snappedLogical = max(-2.0, min(2.0, snappedLogical))
 
-            // 3) Converte de volta para o valor do knob
-            //    (lembrando: currentExposure = -knobValue)
             let snappedKnob = -snappedLogical
 
-            // 4) Aplica de novo para alinhar knob + câmera no valor "travado"
             applyExposure(snappedKnob)
 
-            print("Exposição fixada em: \(currentExposure)")
+            print("Exposition fixated in: \(currentExposure)")
 
         default:
             break

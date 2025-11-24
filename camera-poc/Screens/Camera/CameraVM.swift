@@ -9,7 +9,7 @@ import SwiftUI
 import AVFoundation
 import Combine
 
-class CameraVM: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate{
+class CameraVM: NSObject, ObservableObject {
 
     @Published var isCameraAuthorized = false
     @Published var capturedImage: UIImage?
@@ -100,20 +100,12 @@ class CameraVM: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBuffer
         }
     }
     
-    // MARK: Video session configurations
-    func captureOutput(_ output: AVCaptureOutput,
-                      didOutput sampleBuffer: CMSampleBuffer,
-                      from connection: AVCaptureConnection) {
-        processVideoFrame(sampleBuffer)
-    }
-    
     // MARK: Frame processor as it was in the Coordinator
     private func processVideoFrame(_ sampleBuffer: CMSampleBuffer) {
         guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         
         let ciImage = CIImage(cvPixelBuffer: imageBuffer)
         
-        // [REVISAR QUANDO O BOTÃO DE CAPTURA ESTIVER PRONTO] CORREÇÃO DEFINITIVA: Rotacionar 90° + espelhar se necessário
         let transform = CGAffineTransform(rotationAngle: .pi/2) // 90° clockwise
         let rotatedImage = ciImage.transformed(by: transform)
         
@@ -126,7 +118,6 @@ class CameraVM: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBuffer
         }
     }
     
-    // MARK: Crop image to square
     func cropToSquare(image: UIImage) -> UIImage? {
         let originalWidth  = image.size.width
         let originalHeight = image.size.height
@@ -144,7 +135,7 @@ class CameraVM: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBuffer
         return UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
     }
     
-    private func startCountdown() {
+    func startCountdown() {
         countdown = timerDelay
         var remaining = timerDelay
 
@@ -164,7 +155,7 @@ class CameraVM: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBuffer
 
 }
 
-// MARK: Delegate responsible for dealing
+// MARK: Delegate responsible for dealing with photo capture
 extension CameraVM: AVCapturePhotoCaptureDelegate {
     func photoOutput(_ output: AVCapturePhotoOutput,
                      didFinishProcessingPhoto photo: AVCapturePhoto,
@@ -191,6 +182,15 @@ extension CameraVM: AVCapturePhotoCaptureDelegate {
     }
 }
 
+// MARK: Delegate responsible for dealing with photo capture
+extension CameraVM: AVCaptureVideoDataOutputSampleBufferDelegate {
+    func captureOutput(_ output: AVCaptureOutput,
+                      didOutput sampleBuffer: CMSampleBuffer,
+                      from connection: AVCaptureConnection) {
+        processVideoFrame(sampleBuffer)
+    }
+}
+
 // MARK: Button actions
 extension CameraVM {
     func takePhoto() {
@@ -204,7 +204,6 @@ extension CameraVM {
     private func captureNow() {
         let settings = AVCapturePhotoSettings()
 
-        // Flash
         if output.supportedFlashModes.contains(.on) {
             settings.flashMode = isFlashOn ? .on : .off
         }
