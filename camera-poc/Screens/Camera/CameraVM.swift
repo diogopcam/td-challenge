@@ -9,7 +9,7 @@ import SwiftUI
 import AVFoundation
 import Combine
 
-class CameraVM: NSObject, ObservableObject{
+class CameraVM: NSObject, ObservableObject, AVCaptureVideoDataOutputSampleBufferDelegate{
 
     @Published var isCameraAuthorized = false
     @Published var capturedImage: UIImage?
@@ -22,15 +22,19 @@ class CameraVM: NSObject, ObservableObject{
             setExposureBias(to: exposure)
         }
     }
+    @Published var currentFrame: UIImage?
 
     let session = AVCaptureSession()
     let output = AVCapturePhotoOutput()
-
+    let videoOutput = AVCaptureVideoDataOutput()
+    
+    private let context = CIContext()
+    
     override init() {
         super.init()
         checkCameraPermission()
     }
-
+    
     func checkCameraPermission() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {
         case .authorized:
@@ -53,34 +57,76 @@ class CameraVM: NSObject, ObservableObject{
             errorMessage = "Permissão da câmera não concedida"
         }
     }
-
+    
     private func setupCamera() {
         guard let device = AVCaptureDevice.default(.builtInWideAngleCamera,
                                                    for: .video,
                                                    position: .back),
               let input = try? AVCaptureDeviceInput(device: device) else {
-            errorMessage = "Não foi possível acessar a câmera"
+            errorMessage = "It wasn't possible to access the camera"
             return
         }
 
         session.beginConfiguration()
 
-        if session.canSetSessionPreset(.photo) {
-            session.sessionPreset = .photo
+        if session.canSetSessionPreset(.hd1280x720) {
+            session.sessionPreset = .hd1280x720
         }
 
         session.inputs.forEach { session.removeInput($0) }
 
         if session.canAddInput(input) { session.addInput(input) }
         if session.canAddOutput(output) { session.addOutput(output) }
-
+        
+        setupVideoFeed()
+        
         session.commitConfiguration()
-
+        
         DispatchQueue.global(qos: .userInitiated).async {
             self.session.startRunning()
         }
     }
     
+    // MARK: Video session configurations
+    private func setupVideoFeed() {
+        videoOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "camera.feed.queue"))
+        
+        if session.canAddOutput(videoOutput) {
+            session.addOutput(videoOutput)
+        }
+        
+        if let videoConnection = videoOutput.connection(with: .video) {
+            videoConnection.videoOrientation = .landscapeRight
+        }
+    }
+    
+    // MARK: Video session configurations
+    func captureOutput(_ output: AVCaptureOutput,
+                      didOutput sampleBuffer: CMSampleBuffer,
+                      from connection: AVCaptureConnection) {
+        processVideoFrame(sampleBuffer)
+    }
+    
+    // MARK: Frame processor as it was in the Coordinator
+    private func processVideoFrame(_ sampleBuffer: CMSampleBuffer) {
+        guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+        
+        let ciImage = CIImage(cvPixelBuffer: imageBuffer)
+        
+        // [REVISAR QUANDO O BOTÃO DE CAPTURA ESTIVER PRONTO] CORREÇÃO DEFINITIVA: Rotacionar 90° + espelhar se necessário
+        let transform = CGAffineTransform(rotationAngle: .pi/2) // 90° clockwise
+        let rotatedImage = ciImage.transformed(by: transform)
+        
+        guard let cgImage = context.createCGImage(rotatedImage, from: rotatedImage.extent) else { return }
+        
+        let processedImage = UIImage(cgImage: cgImage, scale: 1.0, orientation: .up)
+        
+        DispatchQueue.main.async {
+            self.currentFrame = processedImage
+        }
+    }
+    
+    // MARK: Crop image to square
     func cropToSquare(image: UIImage) -> UIImage? {
         let originalWidth  = image.size.width
         let originalHeight = image.size.height

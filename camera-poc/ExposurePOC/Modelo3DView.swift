@@ -7,7 +7,7 @@ struct Modelo3DView: UIViewRepresentable {
     
     // MARK: Function responsible for being the bridge between user's interactions and camera functionalities
     func makeCoordinator() -> Coordinator {
-        Coordinator()
+        Coordinator(vm: CameraVM())
     }
     
     func dumpHierarchy(_ entity: Entity, level: Int = 0) {
@@ -74,8 +74,6 @@ struct Modelo3DView: UIViewRepresentable {
                 action: #selector(Coordinator.handlePan(_:))
             )
             arView.addGestureRecognizer(panGesture)
-
-            context.coordinator.setupCameraFeed()
             
             // MARK: ExposureButton being defined
             if let knob = modelEntity.findEntity(named: "Cylinder") {
