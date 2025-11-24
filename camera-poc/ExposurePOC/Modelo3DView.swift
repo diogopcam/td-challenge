@@ -2,7 +2,13 @@ import SwiftUI
 import RealityKit
 import AVFoundation // 1. Importar AVFoundation
 
+// MARK: Struct responsible for "bringing 3D to code"
 struct Modelo3DView: UIViewRepresentable {
+    
+    // MARK: Function responsible for being the bridge between user's interactions and camera functionalities
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
     
     func dumpHierarchy(_ entity: Entity, level: Int = 0) {
         let indent = String(repeating: "  ", count: level)
@@ -11,11 +17,7 @@ struct Modelo3DView: UIViewRepresentable {
             dumpHierarchy(child, level: level + 1)
         }
     }
-    
-    // 2. Implementar o makeCoordinator
-    func makeCoordinator() -> Coordinator {
-        Coordinator()
-    }
+
     
     func makeUIView(context: Context) -> ARView {
         let arView = ARView(
@@ -25,8 +27,10 @@ struct Modelo3DView: UIViewRepresentable {
         )
         
         do {
+            // MARK: 3D model being loaded
             let modelEntity: Entity = try Entity.load(named: "cameraModel")
             dumpHierarchy(modelEntity)
+            
             modelEntity.scale = SIMD3<Float>(repeating: 1.0)
             modelEntity.position = SIMD3<Float>(0, -2.1, 2)
             
@@ -40,16 +44,16 @@ struct Modelo3DView: UIViewRepresentable {
             anchor.addChild(modelEntity)
             arView.scene.addAnchor(anchor)
             
-            // 🔹 CÂMERA PERSONALIZADA (Virtual)
+            // MARK: This camera is the "user's view" in the virtual world, not the iPhone's camera
             let camera = PerspectiveCamera()
-            let cameraTranslation = SIMD3<Float>(0, 0, 5)
+            let cameraTranslation = SIMD3<Float>(0, 0, 24)
             let cameraTransform = Transform(
                 scale: .one,
-                rotation: simd_quatf(angle: -.pi/12, axis: SIMD3<Float>(0, 0, 0)),
+                rotation: simd_quatf(angle: 0, axis: SIMD3<Float>(1, 0, 0)),
                 translation: cameraTranslation
             )
             camera.transform = cameraTransform
-            camera.look(at: .zero, from: cameraTranslation, relativeTo: nil)
+            camera.look(at: SIMD3<Float>(0, 0, 0), from: cameraTranslation, relativeTo: nil)
             
             let cameraAnchor = AnchorEntity(world: .zero)
             cameraAnchor.addChild(camera)
@@ -58,12 +62,11 @@ struct Modelo3DView: UIViewRepresentable {
             context.coordinator.rootModelEntity = modelEntity
             context.coordinator.arView = arView
 
-            // 👇 Guardar referência do CameraBody (pra saber se o toque foi na câmera)
             if let cameraBody = modelEntity.findEntity(named: "CameraBody") {
                 context.coordinator.cameraBody = cameraBody
-                print("Achei entidade CameraBody em RealityKit")
+                print("CameraBody found in RealityKit")
             } else {
-                print("NÃO achei entidade 'CameraBody' em RealityKit")
+                print("CameraBody wasn't found in RealityKit")
             }
             
             let panGesture = UIPanGestureRecognizer(
@@ -74,17 +77,17 @@ struct Modelo3DView: UIViewRepresentable {
 
             context.coordinator.setupCameraFeed()
             
-            // ExposureButton
+            // MARK: ExposureButton being defined
             if let knob = modelEntity.findEntity(named: "Cylinder") {
                 context.coordinator.knobEntity = knob
                 context.coordinator.baseKnobOrientation = knob.orientation
-                print("Achei knob: \(knob.name)")
+                print("Exposure button found and stored as 'knobEntity': \(knob.name)")
             } else {
-                print("⚠️ Não achei entidade 'Knob' no modelo. Ajuste o nome no código.")
+                print("Knob entity wasn't found in RealityKit.")
             }
 
         } catch {
-            print("Erro ao carregar modelo .usdz: \(error)")
+            print("Error loading .usdz model: \(error)")
         }
         
         return arView
