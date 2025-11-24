@@ -11,8 +11,7 @@ import UIKit
 
 struct CameraVMTests {
     
-    // MARK: - Initialization Tests
-    @Test
+    @Test("Initial state is correct")
     func initialState() {
         let sut = CameraVM()
         
@@ -25,8 +24,7 @@ struct CameraVMTests {
         #expect(sut.exposure == 0.0)
     }
     
-    // MARK: - Exposure Tests
-    @Test
+    @Test("Exposure updates to positive value")
     func exposureAdjustment() {
         let sut = CameraVM()
         
@@ -35,7 +33,7 @@ struct CameraVMTests {
         #expect(sut.exposure == 1.5)
     }
     
-    @Test
+    @Test("Exposure updates to negative value")
     func exposureNegativeValue() {
         let sut = CameraVM()
         
@@ -44,8 +42,7 @@ struct CameraVMTests {
         #expect(sut.exposure == -1.0)
     }
     
-    // MARK: - Flash Tests
-    @Test
+    @Test("Toggling flash inverts state")
     func flashToggle() {
         let sut = CameraVM()
         let initial = sut.isFlashOn
@@ -55,7 +52,7 @@ struct CameraVMTests {
         #expect(sut.isFlashOn == !initial)
     }
     
-    @Test
+    @Test("Double toggle returns flash to original state")
     func flashToggleTwiceReturnsToOriginal() {
         let sut = CameraVM()
         let initial = sut.isFlashOn
@@ -66,8 +63,7 @@ struct CameraVMTests {
         #expect(sut.isFlashOn == initial)
     }
     
-    // MARK: - Timer Tests
-    @Test
+    @Test("Timer delay stores positive value correctly")
     func timerDelaySetting() {
         let sut = CameraVM()
         
@@ -76,7 +72,7 @@ struct CameraVMTests {
         #expect(sut.timerDelay == 3)
     }
     
-    @Test
+    @Test("Timer delay can be set to zero")
     func timerDelayZero() {
         let sut = CameraVM()
         
@@ -85,7 +81,7 @@ struct CameraVMTests {
         #expect(sut.timerDelay == 0)
     }
     
-    @Test
+    @Test("CropToSquare handles small images correctly")
     func cropToSquareWithSmallImage() {
         let sut = CameraVM()
         let img = UIImage(systemName: "circle")!
@@ -95,16 +91,14 @@ struct CameraVMTests {
         #expect(cropped != nil)
     }
     
-    // MARK: - Current Frame Publisher Tests
-    @Test
+    @Test("CurrentFrame publisher exists")
     func currentFramePublisherExists() {
         let sut = CameraVM()
         
         #expect(type(of: sut.currentFramePublisher) == Published<UIImage?>.Publisher.self)
     }
     
-    // MARK: - Countdown Tests
-    @Test
+    @Test("Countdown begins using timerDelay value")
     func countdownStartsWithTimerDelay() {
         let sut = CameraVM()
         sut.timerDelay = 2
