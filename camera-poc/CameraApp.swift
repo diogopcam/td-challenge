@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 @main
-struct camera_pocApp: App {
+struct CameraApp: App {
     @StateObject private var vm = CameraVM()
     
     var sharedModelContainer: ModelContainer = {
@@ -27,7 +27,7 @@ struct camera_pocApp: App {
 
     var body: some Scene {
         WindowGroup {
-            CameraView(vm: vm)
+            Camera3DView(vm: vm)
         }
         .modelContainer(sharedModelContainer)
     }
