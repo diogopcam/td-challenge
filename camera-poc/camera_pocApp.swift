@@ -27,7 +27,7 @@ struct camera_pocApp: App {
 
     var body: some Scene {
         WindowGroup {
-            CameraView(vm: vm)
+            CameraPolaroidView()
         }
         .modelContainer(sharedModelContainer)
     }
