@@ -25,15 +25,14 @@ class CameraVM: NSObject, ObservableObject, CameraVMProtocol {
     @Published var countdown: Int? = nil
     @Published var currentFrame: UIImage?
     @Published var showCapturedPhoto: Bool = false
-    
-    var currentFramePublisher: Published<UIImage?>.Publisher { $currentFrame }
-    
     @Published var exposure: Float = 0.0 {
         didSet {
             setExposureBias(to: exposure)
         }
     }
-
+    
+    var currentFramePublisher: Published<UIImage?>.Publisher { $currentFrame }
+    
     let session = AVCaptureSession()
     let output = AVCapturePhotoOutput()
     let videoOutput = AVCaptureVideoDataOutput()

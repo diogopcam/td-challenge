@@ -11,13 +11,11 @@ import Combine
 
 struct Camera3DView: UIViewRepresentable {
     @EnvironmentObject var cameraVM: CameraVM
-    
-    // MARK: - Coordinator
+
     func makeCoordinator() -> Camera3DCoordinator {
         Camera3DCoordinator(cameraVM: cameraVM)
     }
     
-    // MARK: - Make UIView
     func makeUIView(context: Context) -> ARView {
         let arView = ARView(
             frame: .zero,
