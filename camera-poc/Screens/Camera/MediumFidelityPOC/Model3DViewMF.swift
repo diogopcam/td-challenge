@@ -104,7 +104,7 @@ struct Model3DViewMF: UIViewRepresentable {
             if let expBtn = ExposureButtonMF(rootEntity: root, entityName: "Cylinder") {
                 self.exposureButton = expBtn
                 expBtn.onValueChange = { [weak self] newValue in
-                    self?.cameraService.setExposureBias(-newValue)
+                    self?.cameraVM.setExposureBias(to: -newValue)
                 }
             }
             if let timer = TimerSliderMF(rootEntity: root) {
