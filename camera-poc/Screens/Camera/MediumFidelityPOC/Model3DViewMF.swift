@@ -7,6 +7,7 @@
 
 import SwiftUI
 import RealityKit
+import Combine
 
 struct Model3DViewMF: UIViewRepresentable {
     @EnvironmentObject var cameraVM: CameraVM
@@ -68,7 +69,7 @@ struct Model3DViewMF: UIViewRepresentable {
             pressGesture.delegate = context.coordinator
             arView.addGestureRecognizer(pressGesture)
             
-            context.coordinator.startCameraService()
+//            context.coordinator.startCameraService()
             
         } catch {
             print("Erro ao carregar modelo .usdz: \(error)")
@@ -96,8 +97,22 @@ struct Model3DViewMF: UIViewRepresentable {
         private var activeKnob: ExposureButtonMF?
         private var activeSlider: TimerSliderMF?
         
+        var cancellables = Set<AnyCancellable>()
+        
         init(cameraVM: CameraVM) {
             self.cameraVM = cameraVM
+            super.init()
+            
+            cameraVM.$currentFrame
+                .receive(on: RunLoop.main)
+                .sink { [weak self] image in
+                    guard let self = self,
+                          let image = image,
+                          let root = self.rootModelEntity else { return }
+
+                    self.applyCameraImage(image, to: root)
+                }
+                .store(in: &cancellables)
         }
    
         func setupControls(root: Entity) {
@@ -124,21 +139,18 @@ struct Model3DViewMF: UIViewRepresentable {
                 capture.onCapture = {
                     print("📸 Click")
                     self.cameraVM.captureNow()
-//                    self.cameraVM.capturedImage = image
-                    print("Foto capturada: \(self.cameraVM.capturedImage ?? UIImage())")
-//                    self.cameraVM.capturedImage = image
                     self.cameraVM.showCapturedPhoto = true
                 }
             }
         }
         
-        func startCameraService() {
-            cameraService.onFrameCaptured = { [weak self] image in
-                guard let self = self, let root = self.rootModelEntity else { return }
-                self.applyCameraImage(image, to: root)
-            }
-            cameraService.start()
-        }
+//        func startCameraService() {
+//            cameraService.onFrameCaptured = { [weak self] image in
+//                guard let self = self, let root = self.rootModelEntity else { return }
+//                self.applyCameraImage(image, to: root)
+//            }
+//            cameraService.start()
+//        }
         
         func applyCameraImage(_ image: UIImage, to root: Entity) {
             guard let photoPlaneEntity = findModelEntity(named: "PhotoPlane", in: root) else { return }
