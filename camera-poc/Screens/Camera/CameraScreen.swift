@@ -12,14 +12,22 @@ struct CameraScreen: View {
 
     var body: some View {
         ZStack {
-            Model3DViewMF()
+            Camera3DView()
                 .environmentObject(vm)
+            
+        if let count = vm.countdown {
+                Text("\(count)")
+                    .font(.system(size: 120, weight: .bold))
+                    .foregroundColor(.white)
+                    .shadow(radius: 10)
+                    .transition(.opacity)
+                    .animation(.easeInOut, value: count)
+            }
         }
         .fullScreenCover(isPresented: $vm.showCapturedPhoto) {
             if let img = vm.capturedImage {
                 CapturedPhotoView(image: img) {
                     vm.showCapturedPhoto = false
-                    print("É PARA APARECER A VIEW")
                 }
             }
         }

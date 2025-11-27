@@ -16,9 +16,9 @@ struct CapturedPhotoView: View {
             VStack {
                 HStack {
                     Button(action: onClose) {
-                        Image(systemName: "xmark.circle.fill")
+                        Image(systemName: "xmark")
                             .resizable()
-                            .frame(width: 40, height: 40)
+                            .frame(width: 30, height: 30)
                             .foregroundColor(.white)
                             .shadow(radius: 10)
                     }

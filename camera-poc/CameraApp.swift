@@ -29,8 +29,6 @@ struct CameraApp: App {
         WindowGroup {
             CameraScreen()
                 .environmentObject(vm)
-//            Model3DViewMF()
-//            Camera3DView(vm: CameraVM())
         }
         .modelContainer(sharedModelContainer)
     }

@@ -25,7 +25,7 @@
 		AD82551C2ED8BE8700C084F0 /* Exceptions for "camera-poc" folder in "camera-poc" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"Components/3D/textures 2/color_0C0C0C.exr",
+				"3D/Assets/textures 2/color_0C0C0C.exr",
 			);
 			target = ADD662182EBD09EC00C05B59 /* camera-poc */;
 		};

@@ -17,6 +17,7 @@ class CameraVM: NSObject, ObservableObject, CameraVMProtocol {
     }
     
     @Published var isCameraAuthorized = false
+    @Published var isCapturing = false
     @Published var capturedImage: UIImage?
     @Published var errorMessage: String?
     @Published var isFlashOn: Bool = false
@@ -139,7 +140,6 @@ class CameraVM: NSObject, ObservableObject, CameraVMProtocol {
 
 }
 
-// MARK: Delegate responsible for dealing with photo capture
 extension CameraVM: AVCapturePhotoCaptureDelegate {
     func photoOutput(_ output: AVCapturePhotoOutput,
                      didFinishProcessingPhoto photo: AVCapturePhoto,
@@ -168,7 +168,6 @@ extension CameraVM: AVCapturePhotoCaptureDelegate {
     }
 }
 
-// MARK: Delegate responsible for dealing with video capture (live feed)
 extension CameraVM: AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ output: AVCaptureOutput,
                       didOutput sampleBuffer: CMSampleBuffer,
@@ -176,7 +175,6 @@ extension CameraVM: AVCaptureVideoDataOutputSampleBufferDelegate {
         processVideoFrame(sampleBuffer)
     }
     
-    // MARK: Frame processor as it was in the Coordinator
     private func processVideoFrame(_ sampleBuffer: CMSampleBuffer) {
         guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         
@@ -198,6 +196,9 @@ extension CameraVM: AVCaptureVideoDataOutputSampleBufferDelegate {
 // MARK: Button actions
 extension CameraVM {
     func takePhoto() {
+        guard !isCapturing else { return }
+        isCapturing = true
+        
         if timerDelay > 0 {
             startCountdown()
         } else {
@@ -218,6 +219,7 @@ extension CameraVM {
 
         output.capturePhoto(with: settings, delegate: self)
         print("Photo captured!")
+        self.isCapturing = false
     }
     
     func toggleFlash() {
