@@ -17,51 +17,42 @@ struct CameraPolaroidView: View {
     
     var body: some View {
         VStack {
-            ZStack {
-                
-                RealityView { content in
-                    
-                    if let rootAnchor = loader.anchor {
             
-                        rootAnchor.transform.translation = [0, -0.4, 0]
-                        rootAnchor.transform.scale = SIMD3<Float>(repeating: 13)
-
-                        let currentRotation = rootAnchor.transform.rotation
-                        let delta = simd_quatf(angle: -.pi/2, axis: [0, -0.4, 0])
-
-                        rootAnchor.transform.rotation = simd_normalize(delta * currentRotation)
-                        content.add(rootAnchor)
-
-                    }
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .edgesIgnoringSafeArea(.all)
-                .task {
-                    await loader.loadEntity(name: "a")
-                    if let anchor = loader.anchor {
-                           printAllEntities(anchor)
-                           
-                        if let data = UIImage(named: "fotoTeste")?.pngData() {
-                               await updatePolaroid(with: data, in: anchor)
-                           } else {
-                               print("Não consegui carregar fotoTeste.png")
-                           }
-                       }
-                    
-
-                }
-                .onTapGesture {
-                    playAnimation()
-                }
+            RealityView { content in
                 
-                if showTransition {
-                        PolaroidTransitionView {
-                            showTransition = false
-                        }
-                        .transition(.opacity)
-                        .ignoresSafeArea()
-                    }
+                if let rootAnchor = loader.anchor {
+        
+                    rootAnchor.transform.translation = [0, -0.4, 0]
+                    rootAnchor.transform.scale = SIMD3<Float>(repeating: 13)
+
+                    let currentRotation = rootAnchor.transform.rotation
+                    let delta = simd_quatf(angle: -.pi/2, axis: [0, -0.4, 0])
+
+                    rootAnchor.transform.rotation = simd_normalize(delta * currentRotation)
+                    content.add(rootAnchor)
+
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .edgesIgnoringSafeArea(.all)
+            .task {
+                await loader.loadEntity(name: "a")
+                if let anchor = loader.anchor {
+                       printAllEntities(anchor)
+                       
+                    if let data = UIImage(named: "fotoTeste")?.pngData() {
+                           await updatePolaroid(with: data, in: anchor)
+                       } else {
+                           print("Não consegui carregar fotoTeste.png")
+                       }
+                   }
+                
+
+            }
+            .onTapGesture {
+                playAnimation()
+            }
+            
         }
     }
     
