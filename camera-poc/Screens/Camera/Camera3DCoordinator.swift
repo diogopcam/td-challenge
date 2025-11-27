@@ -16,8 +16,16 @@ class Camera3DCoordinator: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
     
     private var cancellables = Set<AnyCancellable>()
 
+    // MAR: Root of the 3D model
     var rootModelEntity: Entity?
+
     var cameraBody: Entity?
+    
+//    var exposureButton: ExposureButtonMF?
+    var timerSlider: TimerSliderMF?
+    var captureButton: Entity?
+    var flashButton: FlashButtonMF?
+    
     weak var arView: ARView?
     private let context = CIContext()
     

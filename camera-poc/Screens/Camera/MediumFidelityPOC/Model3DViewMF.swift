@@ -9,10 +9,11 @@ import SwiftUI
 import RealityKit
 
 struct Model3DViewMF: UIViewRepresentable {
+    @EnvironmentObject var cameraVM: CameraVM
     
     // MARK: - Coordinator
     func makeCoordinator() -> Coordinator {
-        Coordinator()
+        Coordinator(cameraVM: cameraVM)
     }
     
     // MARK: - Make UIView
@@ -86,6 +87,7 @@ struct Model3DViewMF: UIViewRepresentable {
         var onDismissAction: (() -> Void)?
         
         let cameraService = CameraServiceMF()
+        let cameraVM: CameraVM
         var exposureButton: ExposureButtonMF?
         var timerSlider: TimerSliderMF?
         var captureButton: CaptureButtonMF?
@@ -93,6 +95,10 @@ struct Model3DViewMF: UIViewRepresentable {
         
         private var activeKnob: ExposureButtonMF?
         private var activeSlider: TimerSliderMF?
+        
+        init(cameraVM: CameraVM) {
+            self.cameraVM = cameraVM
+        }
    
         func setupControls(root: Entity) {
             if let expBtn = ExposureButtonMF(rootEntity: root, entityName: "Cylinder") {
@@ -117,6 +123,11 @@ struct Model3DViewMF: UIViewRepresentable {
                 self.captureButton = capture
                 capture.onCapture = {
                     print("📸 Click")
+                    self.cameraVM.captureNow()
+//                    self.cameraVM.capturedImage = image
+                    print("Foto capturada: \(self.cameraVM.capturedImage ?? UIImage())")
+//                    self.cameraVM.capturedImage = image
+                    self.cameraVM.showCapturedPhoto = true
                 }
             }
         }

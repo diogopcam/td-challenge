@@ -87,6 +87,8 @@ struct Camera3DView: UIViewRepresentable {
             } else {
                 print("Knob entity wasn't found in RealityKit.")
             }
+            
+            
 
         } catch {
             print("Error loading .usdz model: \(error)")

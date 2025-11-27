@@ -23,6 +23,7 @@ class CameraVM: NSObject, ObservableObject, CameraVMProtocol {
     @Published var timerDelay: Int = 0
     @Published var countdown: Int? = nil
     @Published var currentFrame: UIImage?
+    @Published var showCapturedPhoto: Bool = false
     
     var currentFramePublisher: Published<UIImage?>.Publisher { $currentFrame }
     
@@ -161,6 +162,8 @@ extension CameraVM: AVCapturePhotoCaptureDelegate {
             } else {
                 self.capturedImage = image
             }
+            
+            self.showCapturedPhoto = true
         }
     }
 }
