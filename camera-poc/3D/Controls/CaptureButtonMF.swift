@@ -20,7 +20,7 @@ class CaptureButtonMF {
     
     init?(rootEntity: Entity, entityName: String) {
         guard let found = rootEntity.findEntity(named: entityName) else {
-            print("⚠️ CaptureButton: entidade '\(entityName)' não encontrada.")
+            print("CaptureButton: entidade '\(entityName)' não encontrada.")
             return nil
         }
         self.entity = found

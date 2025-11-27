@@ -17,21 +17,22 @@ class CameraVM: NSObject, ObservableObject, CameraVMProtocol {
     }
     
     @Published var isCameraAuthorized = false
+    @Published var isCapturing = false
     @Published var capturedImage: UIImage?
     @Published var errorMessage: String?
     @Published var isFlashOn: Bool = false
     @Published var timerDelay: Int = 0
     @Published var countdown: Int? = nil
     @Published var currentFrame: UIImage?
-    
-    var currentFramePublisher: Published<UIImage?>.Publisher { $currentFrame }
-    
+    @Published var showCapturedPhoto: Bool = false
     @Published var exposure: Float = 0.0 {
         didSet {
             setExposureBias(to: exposure)
         }
     }
-
+    
+    var currentFramePublisher: Published<UIImage?>.Publisher { $currentFrame }
+    
     let session = AVCaptureSession()
     let output = AVCapturePhotoOutput()
     let videoOutput = AVCaptureVideoDataOutput()
@@ -138,7 +139,6 @@ class CameraVM: NSObject, ObservableObject, CameraVMProtocol {
 
 }
 
-// MARK: Delegate responsible for dealing with photo capture
 extension CameraVM: AVCapturePhotoCaptureDelegate {
     func photoOutput(_ output: AVCapturePhotoOutput,
                      didFinishProcessingPhoto photo: AVCapturePhoto,
@@ -161,11 +161,12 @@ extension CameraVM: AVCapturePhotoCaptureDelegate {
             } else {
                 self.capturedImage = image
             }
+            
+            self.showCapturedPhoto = true
         }
     }
 }
 
-// MARK: Delegate responsible for dealing with video capture (live feed)
 extension CameraVM: AVCaptureVideoDataOutputSampleBufferDelegate {
     func captureOutput(_ output: AVCaptureOutput,
                       didOutput sampleBuffer: CMSampleBuffer,
@@ -173,7 +174,6 @@ extension CameraVM: AVCaptureVideoDataOutputSampleBufferDelegate {
         processVideoFrame(sampleBuffer)
     }
     
-    // MARK: Frame processor as it was in the Coordinator
     private func processVideoFrame(_ sampleBuffer: CMSampleBuffer) {
         guard let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         
@@ -195,6 +195,9 @@ extension CameraVM: AVCaptureVideoDataOutputSampleBufferDelegate {
 // MARK: Button actions
 extension CameraVM {
     func takePhoto() {
+        guard !isCapturing else { return }
+        isCapturing = true
+        
         if timerDelay > 0 {
             startCountdown()
         } else {
@@ -215,6 +218,7 @@ extension CameraVM {
 
         output.capturePhoto(with: settings, delegate: self)
         print("Photo captured!")
+        self.isCapturing = false
     }
     
     func toggleFlash() {

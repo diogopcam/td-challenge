@@ -21,9 +21,22 @@
 		ADDC679D2ECCF9BB00332487 /* td-tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "td-tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		AD82551C2ED8BE8700C084F0 /* Exceptions for "camera-poc" folder in "camera-poc" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"3D/Assets/textures 2/color_0C0C0C.exr",
+			);
+			target = ADD662182EBD09EC00C05B59 /* camera-poc */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		ADD6621B2EBD09EC00C05B59 /* camera-poc */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				AD82551C2ED8BE8700C084F0 /* Exceptions for "camera-poc" folder in "camera-poc" target */,
+			);
 			path = "camera-poc";
 			sourceTree = "<group>";
 		};
