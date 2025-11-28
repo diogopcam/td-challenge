@@ -1,0 +1,30 @@
+    name: Swift CI
+
+    on:
+      push:
+        branches: [ "develop" ]
+      pull_request:
+        branches: [ "develop" ]
+
+    jobs:
+      build-and-test:
+        runs-on: macos-latest # Or other suitable runner like ubuntu-latest for SwiftPM projects
+
+        steps:
+        - uses: actions/checkout@v4 # Checkout the repository code
+
+        # - name: Select Xcode version (if needed)
+        #   run: sudo xcode-select -s /Applications/Xcode_15.3.app/Contents/Developer # Example for specific Xcode version
+
+        # - name: Build Swift Package
+        #   run: swift build -v # Build your Swift package
+
+        - name: List available simulators
+          run: xcrun simctl list devices
+        
+        - name: Build and Test Xcode Project
+          run: |
+            xcodebuild test \
+              -scheme "camera-poc" \
+              -destination 'platform=iOS Simulator,name=iPhone 16' \
+              | xcpretty
