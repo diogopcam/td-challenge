@@ -36,7 +36,7 @@ struct CameraPolaroidView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .edgesIgnoringSafeArea(.all)
             .task {
-                await loader.loadEntity(name: "a")
+                await loader.loadEntity(name: "cameraPolaroidAnimadaComTela")
                 if let anchor = loader.anchor {
                        printAllEntities(anchor)
                        
