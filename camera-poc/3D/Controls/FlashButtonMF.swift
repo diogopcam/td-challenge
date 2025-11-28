@@ -49,6 +49,8 @@ class FlashButtonMF {
         var transform = entity.transform
         transform.rotation = rotation * baseOrientation
         
+        HapticManager.shared.flashFeedback()
+        
         entity.move(
             to: transform,
             relativeTo: entity.parent,

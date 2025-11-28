@@ -29,11 +29,6 @@ final class SoundManager {
     }
 
     // MARK: - Sound Playback
-    
-    /// Reproduz um som do bundle
-    /// - Parameters:
-    ///   - name: Nome do asset de som
-    ///   - volume: Volume (0.0 a 1.0), padrão 1.0
     func playSound(named name: String, volume: Float = 1.0) {
         guard let asset = NSDataAsset(name: name) else {
             print("Sound asset not found: \(name)")
@@ -59,7 +54,6 @@ final class SoundManager {
     }
     
     // MARK: - Cleanup
-    
     private func cleanupFinishedPlayers() {
         players.removeAll { !$0.isPlaying }
     }

@@ -15,7 +15,6 @@ class CaptureButtonMF {
     
     var onCapture: (() -> Void)?
     
-    private let haptic = UIImpactFeedbackGenerator(style: .medium)
     private var isPressed = false
     
     init?(rootEntity: Entity, entityName: String) {
@@ -27,9 +26,11 @@ class CaptureButtonMF {
         self.baseTransform = found.transform
     }
     
+    // MARK: - Identificação do toque
     func represents(_ targetEntity: Entity?) -> Bool {
         guard let target = targetEntity else { return false }
         var current: Entity? = target
+        
         while let e = current {
             if e == entity { return true }
             current = e.parent
@@ -37,11 +38,12 @@ class CaptureButtonMF {
         return false
     }
     
-    // MARK: - Animações de Estado
+    // MARK: - Pressionar botão
     func press() {
         guard !isPressed else { return }
         isPressed = true
-        haptic.impactOccurred()
+         
+        HapticManager.shared.shutterPress()
         
         var pressed = baseTransform
         pressed.translation.x -= 0.12
@@ -54,9 +56,13 @@ class CaptureButtonMF {
         )
     }
     
+    // MARK: - Soltar botão
     func release() {
         guard isPressed else { return }
         isPressed = false
+        
+        HapticManager.shared.shutterPress()
+        ShutterSound.play()
         
         entity.move(
             to: baseTransform,

@@ -59,10 +59,15 @@ final class HapticManager {
     
     /// Estilos de haptic para o obturador da câmera
     enum ShutterStyle: String, CaseIterable, Identifiable {
+        
         case mechanical = "Mechanical"
+        
         case heavy = "Heavy"
+        
         case electronic = "Electronic"
+        
         case double = "Double"
+        
         case oldCamera = "Old Camera"
 
         var id: String { rawValue }
@@ -324,7 +329,6 @@ final class HapticManager {
     }
 
     // MARK: - Camera Control Haptics
-    
     /// Haptic personalizado para pressionar o botão do obturador
     /// Intensidade média-alta para feedback tátil claro
     func shutterPress() {
