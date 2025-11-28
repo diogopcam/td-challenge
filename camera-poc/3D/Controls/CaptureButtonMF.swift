@@ -62,7 +62,6 @@ class CaptureButtonMF {
         isPressed = false
         
         HapticManager.shared.shutterPress()
-        ShutterSound.play()
         
         entity.move(
             to: baseTransform,
