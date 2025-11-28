@@ -1,5 +1,5 @@
 //
-//  CaptureButtonMF.swift
+//  CaptureButton.swift
 //  camera-poc
 //
 //  Created by Gabriel Barbosa on 21/11/25.
@@ -8,7 +8,7 @@
 import RealityKit
 import UIKit
 
-class CaptureButtonMF {
+class CaptureButton {
     
     private let entity: Entity
     private let baseTransform: Transform
@@ -26,7 +26,6 @@ class CaptureButtonMF {
         self.baseTransform = found.transform
     }
     
-    // MARK: - Identificação do toque
     func represents(_ targetEntity: Entity?) -> Bool {
         guard let target = targetEntity else { return false }
         var current: Entity? = target
@@ -38,7 +37,6 @@ class CaptureButtonMF {
         return false
     }
     
-    // MARK: - Pressionar botão
     func press() {
         guard !isPressed else { return }
         isPressed = true
@@ -56,7 +54,6 @@ class CaptureButtonMF {
         )
     }
     
-    // MARK: - Soltar botão
     func release() {
         guard isPressed else { return }
         isPressed = false

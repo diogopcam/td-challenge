@@ -1,5 +1,5 @@
 //
-//  ExposureButtonMF.swift
+//  ExposureButton.swift
 //  camera-poc
 //
 //  Created by Gabriel Barbosa on 21/11/25.
@@ -8,7 +8,7 @@
 import RealityKit
 import UIKit
 
-class ExposureButtonMF {
+class ExposureButton {
     
     private let entity: Entity
     private let baseOrientation: simd_quatf
@@ -17,7 +17,6 @@ class ExposureButtonMF {
     private var lastAngle: Float = 0.0
     private var centerScreenPosition: CGPoint = .zero
     
-    /// Para detectar quando cruzou um "stop" de 0.1
     private var lastStepValue: Float = 0.0
     
     var onValueChange: ((Float) -> Void)?
@@ -42,7 +41,6 @@ class ExposureButtonMF {
         return false
     }
     
-    // MARK: - Gesture Handling
     func handlePan(_ recognizer: UIPanGestureRecognizer, in arView: ARView) {
         let location = recognizer.location(in: arView)
         
@@ -106,8 +104,6 @@ class ExposureButtonMF {
         }
     }
     
-    
-    // MARK: - Visual Update
     private func updateVisualRotation() {
         let degreesPerStop: Float = 67.5
         let angleRadians = (value * degreesPerStop) * .pi / 180

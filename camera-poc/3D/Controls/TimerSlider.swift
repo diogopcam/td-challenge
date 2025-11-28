@@ -1,5 +1,5 @@
 //
-//  TimerSliderMF.swift
+//  TimerSlider.swift
 //  camera-poc
 //
 //  Created by Gabriel Barbosa on 21/11/25.
@@ -8,7 +8,7 @@
 import RealityKit
 import UIKit
 
-class TimerSliderMF {
+class TimerSlider {
     
     private let knobEntity: Entity
     private let pos0: SIMD3<Float>
@@ -29,7 +29,7 @@ class TimerSliderMF {
               let e0 = rootEntity.findEntity(named: "Empty0s"),
               let e5 = rootEntity.findEntity(named: "Empty5s"),
               let e10 = rootEntity.findEntity(named: "Empty10s") else {
-            print("⚠️ TimerSlider: Faltando entidades (TimerKnob, Empty0s, Empty5s ou Empty10s)")
+            print("TimerSlider: Faltando entidades (TimerKnob, Empty0s, Empty5s ou Empty10s)")
             return nil
         }
         

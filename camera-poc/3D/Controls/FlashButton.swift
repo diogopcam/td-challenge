@@ -1,5 +1,5 @@
 //
-//  FlashButtonMF.swift
+//  FlashButton.swift
 //  camera-poc
 //
 //  Created by Gabriel Barbosa on 24/11/25.
@@ -8,7 +8,7 @@
 import RealityKit
 import UIKit
 
-class FlashButtonMF {
+class FlashButton {
     
     private let entity: Entity
     private let baseOrientation: simd_quatf
@@ -20,7 +20,7 @@ class FlashButtonMF {
     
     init?(rootEntity: Entity, entityName: String) {
         guard let found = rootEntity.findEntity(named: entityName) else {
-            print("⚠️ FlashButton: entidade '\(entityName)' não encontrada.")
+            print("FlashButton: entidade '\(entityName)' não encontrada.")
             return nil
         }
         self.entity = found
