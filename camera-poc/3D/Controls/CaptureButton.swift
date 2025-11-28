@@ -42,6 +42,7 @@ class CaptureButton {
         isPressed = true
          
         HapticManager.shared.shutterPress()
+        SoundManager.shared.playSound(named: "shutter")
         
         var pressed = baseTransform
         pressed.translation.x -= 0.12
@@ -58,7 +59,7 @@ class CaptureButton {
         guard isPressed else { return }
         isPressed = false
         
-        HapticManager.shared.shutterPress()
+        HapticManager.shared.shutterRelease()
         
         entity.move(
             to: baseTransform,

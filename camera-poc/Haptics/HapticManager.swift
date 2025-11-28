@@ -56,7 +56,6 @@ final class HapticManager {
     }
 
     // MARK: - Camera Haptics
-    
     /// Estilos de haptic para o obturador da câmera
     enum ShutterStyle: String, CaseIterable, Identifiable {
         
@@ -98,7 +97,6 @@ final class HapticManager {
     }
     
     // MARK: - Shutter Event Builders
-    
     private func createMechanicalShutterEvents() -> [CHHapticEvent] {
         let start = CHHapticEvent(
             eventType: .hapticTransient,
@@ -200,7 +198,6 @@ final class HapticManager {
     }
 
     // MARK: - Pattern Playback
-    
     private func playPattern(events: [CHHapticEvent], curves: [CHHapticParameterCurve] = []) {
         guard supportsHaptics, let engine = engine else { return }
         
@@ -214,7 +211,6 @@ final class HapticManager {
     }
 
     // MARK: - System Haptics
-
     /// Reproduz haptic de notificação
     /// - Parameter type: Tipo de notificação (success, warning, error)
     /// - Returns: true se o haptic foi reproduzido com sucesso
