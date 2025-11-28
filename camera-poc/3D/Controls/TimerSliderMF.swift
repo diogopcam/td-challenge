@@ -82,6 +82,8 @@ class TimerSliderMF {
             var newProgress = startProgress + progressDelta
             newProgress = max(0.0, min(1.0, newProgress))
             
+            HapticManager.shared.sliderFeedback()
+            
             updateKnobPosition(progress: newProgress)
             
         case .ended, .cancelled:

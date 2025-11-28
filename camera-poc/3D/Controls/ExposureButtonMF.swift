@@ -17,11 +17,14 @@ class ExposureButtonMF {
     private var lastAngle: Float = 0.0
     private var centerScreenPosition: CGPoint = .zero
     
+    /// Para detectar quando cruzou um "stop" de 0.1
+    private var lastStepValue: Float = 0.0
+    
     var onValueChange: ((Float) -> Void)?
     
     init?(rootEntity: Entity, entityName: String) {
         guard let foundEntity = rootEntity.findEntity(named: entityName) else {
-            print("⚠️ ExposureButton: Entidade '\(entityName)' não encontrada.")
+            print("ExposureButton: Entidade '\(entityName)' não encontrada.")
             return nil
         }
         self.entity = foundEntity
@@ -39,11 +42,17 @@ class ExposureButtonMF {
         return false
     }
     
+    // MARK: - Gesture Handling
     func handlePan(_ recognizer: UIPanGestureRecognizer, in arView: ARView) {
         let location = recognizer.location(in: arView)
         
         switch recognizer.state {
+            
         case .began:
+            HapticManager.shared.selection()
+            
+            lastStepValue = value
+            
             if let projected = arView.project(entity.position(relativeTo: nil)) {
                 centerScreenPosition = projected
             } else {
@@ -53,6 +62,7 @@ class ExposureButtonMF {
             let dx = Float(location.x - centerScreenPosition.x)
             let dy = Float(location.y - centerScreenPosition.y)
             lastAngle = atan2(dy, dx)
+            
             
         case .changed:
             let dx = Float(location.x - centerScreenPosition.x)
@@ -72,8 +82,16 @@ class ExposureButtonMF {
             let deltaStops = -(deltaAngle / maxAngle) * 4.0
             
             value = max(-2.0, min(2.0, value + deltaStops))
+            
+            let stepped = (value * 10).rounded() / 10
+            if stepped != lastStepValue {
+                HapticManager.shared.dialFeedback()
+                lastStepValue = stepped
+            }
+            
             updateVisualRotation()
             onValueChange?(value)
+            
             
         case .ended, .cancelled:
             let snapped = (value * 10).rounded() / 10
@@ -81,14 +99,19 @@ class ExposureButtonMF {
             updateVisualRotation()
             onValueChange?(value)
             
+            HapticManager.shared.impact(.light)
+            
+            
         default: break
         }
     }
     
+    
+    // MARK: - Visual Update
     private func updateVisualRotation() {
         let degreesPerStop: Float = 67.5
         let angleRadians = (value * degreesPerStop) * .pi / 180
-        let rotation = simd_quatf(angle: angleRadians, axis: SIMD3<Float>(1, 0, 0)) 
+        let rotation = simd_quatf(angle: angleRadians, axis: SIMD3<Float>(1, 0, 0))
         
         entity.orientation = rotation * baseOrientation
     }
