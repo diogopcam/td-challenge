@@ -39,7 +39,7 @@ class FlashButton {
     func handleTap() {
         
         if !ButtonManager.shared.isEnabled {
-             SoundManager.shared.playSound(named: "offFlash")
+             SoundManager.shared.playSound(named: "disableButton1")
              return
         }
         

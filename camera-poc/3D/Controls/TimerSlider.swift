@@ -57,7 +57,7 @@ class TimerSlider {
         if !ButtonManager.shared.isEnabled {
             if recognizer.state == .began {
                 HapticManager.shared.impact(.light)
-                SoundManager.shared.playSound(named: "offFlash")
+                SoundManager.shared.playSound(named: "disableButton1")
             }
 
             return
