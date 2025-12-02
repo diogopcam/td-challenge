@@ -88,7 +88,7 @@ class ExposureButtonMF {
     private func updateVisualRotation() {
         let degreesPerStop: Float = 67.5
         let angleRadians = (value * degreesPerStop) * .pi / 180
-        let rotation = simd_quatf(angle: angleRadians, axis: SIMD3<Float>(1, 0, 0)) 
+        let rotation = simd_quatf(angle: angleRadians, axis: SIMD3<Float>(0, 1, 0)) 
         
         entity.orientation = rotation * baseOrientation
     }
