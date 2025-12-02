@@ -42,6 +42,19 @@ class ExposureButton {
     }
     
     func handlePan(_ recognizer: UIPanGestureRecognizer, in arView: ARView) {
+    
+        if !ButtonManager.shared.isEnabled {
+            
+            // O toque só é reconhecido como gesto no .began
+            if recognizer.state == .began {
+                HapticManager.shared.impact(.light)
+                SoundManager.shared.playSound(named: "offFlash")
+            }
+            
+            return
+        }
+        
+        // ---- HABILITADO ----
         let location = recognizer.location(in: arView)
         
         switch recognizer.state {
@@ -84,6 +97,7 @@ class ExposureButton {
             let stepped = (value * 10).rounded() / 10
             if stepped != lastStepValue {
                 HapticManager.shared.dialFeedback()
+                playExposureTick(for: stepped)
                 lastStepValue = stepped
             }
             
@@ -100,9 +114,11 @@ class ExposureButton {
             HapticManager.shared.impact(.light)
             
             
-        default: break
+        default:
+            break
         }
     }
+
     
     private func updateVisualRotation() {
         let degreesPerStop: Float = 67.5
@@ -110,5 +126,24 @@ class ExposureButton {
         let rotation = simd_quatf(angle: angleRadians, axis: SIMD3<Float>(1, 0, 0))
         
         entity.orientation = rotation * baseOrientation
+    }
+    
+    private func playExposureTick(for stepped: Float) {
+        // Normaliza o stepped para 0..1 (range -2..2 → 0..1)
+        let normalized = (stepped + 2.0) / 4.0
+        
+        // Converte para 0..5
+        var index = Int(normalized * 6)
+        index = min(max(index, 0), 5) // clamp
+
+        let soundNames = ["exposure1","exposure2","exposure3","exposure4","exposure5","exposure6"]
+
+        SoundManager.shared.playSound(named: soundNames[index], volume: 0.9)
+    }
+}
+
+extension Comparable {
+    func clamped(to range: ClosedRange<Self>) -> Self {
+        return min(max(self, range.lowerBound), range.upperBound)
     }
 }

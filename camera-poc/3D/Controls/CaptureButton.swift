@@ -12,6 +12,7 @@ class CaptureButton {
     
     private let entity: Entity
     private let baseTransform: Transform
+    private var isEnabled = true
     
     var onCapture: (() -> Void)?
     
@@ -19,7 +20,6 @@ class CaptureButton {
     
     init?(rootEntity: Entity, entityName: String) {
         guard let found = rootEntity.findEntity(named: entityName) else {
-            print("CaptureButton: entidade '\(entityName)' não encontrada.")
             return nil
         }
         self.entity = found
@@ -38,6 +38,11 @@ class CaptureButton {
     }
     
     func press() {
+        if !ButtonManager.shared.isEnabled {
+            SoundManager.shared.playSound(named: "offFlash")
+            return
+        }
+        
         guard !isPressed else { return }
         isPressed = true
          
@@ -70,4 +75,13 @@ class CaptureButton {
         
         onCapture?()
     }
+    
+    func enable() {
+        isEnabled = true
+    }
+    
+    func disable() {
+        isEnabled = false
+    }
+
 }

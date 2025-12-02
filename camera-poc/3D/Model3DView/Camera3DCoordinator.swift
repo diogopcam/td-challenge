@@ -65,9 +65,22 @@ class Camera3DCoordinator: NSObject, UIGestureRecognizerDelegate {
         }
         if let capture = CaptureButton(rootEntity: root, entityName: "CaptureButton") {
             self.captureButton = capture
-            capture.onCapture = {
+            capture.onCapture = { [weak self] in
+                guard let self = self else { return }
+                
+                // Se houver delay, desabilitar botão ANTES de iniciar o countdown
+                if self.cameraVM.timerDelay > 0 {
+                    capture.disable()
+                    
+                    // Quando o countdown terminar, reabilita o botão
+                    self.cameraVM.onCountdownFinished = {
+                        capture.enable()
+                    }
+                }
+
                 self.cameraVM.takePhoto()
             }
+
         }
     }
     

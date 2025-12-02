@@ -20,7 +20,6 @@ class FlashButton {
     
     init?(rootEntity: Entity, entityName: String) {
         guard let found = rootEntity.findEntity(named: entityName) else {
-            print("FlashButton: entidade '\(entityName)' não encontrada.")
             return nil
         }
         self.entity = found
@@ -38,8 +37,20 @@ class FlashButton {
     }
     
     func handleTap() {
+        
+        if !ButtonManager.shared.isEnabled {
+             SoundManager.shared.playSound(named: "offFlash")
+             return
+        }
+        
         isOn.toggle()
         haptic.impactOccurred()
+        
+        if isOn {
+            SoundManager.shared.playSound(named: "onFlash")
+        } else {
+            SoundManager.shared.playSound(named: "offFlash")
+        }
         
         let angleDegrees: Float = isOn ? 10.0 : -10.0
         let angleRadians = angleDegrees * .pi / 180

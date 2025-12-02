@@ -29,7 +29,6 @@ class TimerSlider {
               let e0 = rootEntity.findEntity(named: "Empty0s"),
               let e5 = rootEntity.findEntity(named: "Empty5s"),
               let e10 = rootEntity.findEntity(named: "Empty10s") else {
-            print("TimerSlider: Faltando entidades (TimerKnob, Empty0s, Empty5s ou Empty10s)")
             return nil
         }
         
@@ -54,42 +53,55 @@ class TimerSlider {
     }
     
     func handlePan(_ recognizer: UIPanGestureRecognizer, in arView: ARView) {
-        let location = recognizer.location(in: arView)
         
+        if !ButtonManager.shared.isEnabled {
+            if recognizer.state == .began {
+                HapticManager.shared.impact(.light)
+                SoundManager.shared.playSound(named: "offFlash")
+            }
+
+            return
+        }
+
+        let location = recognizer.location(in: arView)
+
         switch recognizer.state {
+
         case .began:
             touchStartLocation = location
             startProgress = currentProgress
-            
+
             let worldPos0 = knobEntity.parent?.convert(position: pos0, to: nil) ?? pos0
             let worldPos10 = knobEntity.parent?.convert(position: pos10, to: nil) ?? pos10
-            
+
             guard let p0 = arView.project(worldPos0),
                   let p10 = arView.project(worldPos10) else { return }
-            
+
             screenTrackVector = CGPoint(x: p10.x - p0.x, y: p10.y - p0.y)
-            
+
+
         case .changed:
             let dragVector = CGPoint(x: location.x - touchStartLocation.x,
                                      y: location.y - touchStartLocation.y)
-            
-            let trackLengthSquared = screenTrackVector.x * screenTrackVector.x + screenTrackVector.y * screenTrackVector.y
+
+            let trackLengthSquared = screenTrackVector.x * screenTrackVector.x +
+                                     screenTrackVector.y * screenTrackVector.y
             guard trackLengthSquared > 0 else { return }
-            
+
             let dotProduct = dragVector.x * screenTrackVector.x + dragVector.y * screenTrackVector.y
             let progressDelta = Float(dotProduct / trackLengthSquared)
-            
+
             var newProgress = startProgress + progressDelta
             newProgress = max(0.0, min(1.0, newProgress))
-            
+
             HapticManager.shared.sliderFeedback()
-            
             updateKnobPosition(progress: newProgress)
-            
+
+
         case .ended, .cancelled:
             let snapTarget: Float
             let finalValue: Int
-            
+
             if currentProgress < 0.25 {
                 snapTarget = 0.0
                 finalValue = 0
@@ -100,17 +112,17 @@ class TimerSlider {
                 snapTarget = 1.0
                 finalValue = 10
             }
-            
+
             currentProgress = snapTarget
             selectedValue = finalValue
             updateKnobPosition(progress: snapTarget)
-            
-            print("⏱️ Timer definido para: \(finalValue)s")
             onValueChange?(finalValue)
-            
-        default: break
+
+        default:
+            break
         }
     }
+
     
     private func updateKnobPosition(progress: Float) {
         self.currentProgress = progress
