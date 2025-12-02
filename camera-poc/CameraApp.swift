@@ -27,7 +27,8 @@ struct CameraApp: App {
 
     var body: some Scene {
         WindowGroup {
-            Model3DViewMF()
+            CameraScreen()
+                .environmentObject(vm)
                 .ignoresSafeArea()
         }
         .modelContainer(sharedModelContainer)
