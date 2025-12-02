@@ -13,6 +13,10 @@ class FlashButtonMF {
     private let entity: Entity
     private let baseOrientation: simd_quatf
     
+    private let ledEntity: ModelEntity
+    private let ledOnMaterial: SimpleMaterial
+    private let ledOffMaterial: SimpleMaterial
+    
     private(set) var isOn: Bool = false
     var onToggle: ((Bool) -> Void)?
     
@@ -20,11 +24,46 @@ class FlashButtonMF {
     
     init?(rootEntity: Entity, entityName: String) {
         guard let found = rootEntity.findEntity(named: entityName) else {
-            print("⚠️ FlashButton: entidade '\(entityName)' não encontrada.")
             return nil
         }
         self.entity = found
         self.baseOrientation = found.orientation
+
+
+        guard let buttonModel = found.children.compactMap({ $0 as? ModelEntity }).first else {
+            return nil
+        }
+
+        let radius: Float = 0.002
+        let mesh = MeshResource.generateSphere(radius: radius)
+
+        ledOffMaterial = SimpleMaterial(color: .darkGray, isMetallic: false)
+        ledOnMaterial  = SimpleMaterial(color: .red,      isMetallic: false)
+
+        let led = ModelEntity(mesh: mesh, materials: [ledOffMaterial])
+
+        // bounds do botão
+        let bounds  = buttonModel.visualBounds(relativeTo: buttonModel)
+        let center  = bounds.center
+        let extents = bounds.extents
+
+        // ponto de partida: centro do botão
+        let offsetX: Float =  0.2   // frente/fundo
+        let offsetY: Float =  -0.069   // cima/baixo
+        let offsetZ: Float =  -0.28 // esquerda/direita
+
+        led.position = SIMD3<Float>(
+            center.x + offsetX,
+            center.y + offsetY,
+            center.z + extents.z / 2 + radius + offsetZ
+        )
+
+        // tamanho
+        led.setScale(SIMD3<Float>(repeating: 3.5), relativeTo: buttonModel)
+
+        buttonModel.addChild(led)
+        self.ledEntity = led
+
     }
     
     func represents(_ targetEntity: Entity?) -> Bool {
@@ -48,6 +87,12 @@ class FlashButtonMF {
         
         var transform = entity.transform
         transform.rotation = rotation * baseOrientation
+        
+        // cinza quando off, vermelho quando on
+        if var model = ledEntity.model {
+            model.materials = [isOn ? ledOnMaterial : ledOffMaterial]
+            ledEntity.model = model
+        }
         
         HapticManager.shared.flashFeedback()
         
