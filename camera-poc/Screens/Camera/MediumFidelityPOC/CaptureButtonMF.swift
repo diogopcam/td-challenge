@@ -44,7 +44,8 @@ class CaptureButtonMF {
         haptic.impactOccurred()
         
         var pressed = baseTransform
-        pressed.translation.y -= 0.003
+        //pressed.translation.y -= 0.003
+        pressed.scale -= 0.03
         
         entity.move(
             to: pressed,
