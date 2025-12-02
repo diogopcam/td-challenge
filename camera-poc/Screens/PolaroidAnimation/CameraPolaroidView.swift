@@ -9,57 +9,92 @@ import SwiftUI
 import RealityKit
 import UIKit
 
-
 struct CameraPolaroidView: View {
     @State var loader = RootEntityLoader()
     @State var showTransition = false
 
-    
     var body: some View {
         VStack {
-            
-            RealityView { content in
-                
-                if let rootAnchor = loader.anchor {
-        
-                    rootAnchor.transform.translation = [0, -0.4, 0]
-                    rootAnchor.transform.scale = SIMD3<Float>(repeating: 13)
+            ZStack {
+                Image("fundotela")
+                    .resizable()
+                    .scaledToFill()
+                    .ignoresSafeArea()
 
-                    let currentRotation = rootAnchor.transform.rotation
-                    let delta = simd_quatf(angle: -.pi/2, axis: [0, -0.4, 0])
+                RealityView { content in
+                    if let rootAnchor = loader.anchor {
+                        rootAnchor.transform.translation = [0, -0.4, 0]
+                        rootAnchor.transform.scale = SIMD3<Float>(repeating: 15)
 
-                    rootAnchor.transform.rotation = simd_normalize(delta * currentRotation)
-                    content.add(rootAnchor)
+                        let currentRotation = rootAnchor.transform.rotation
+                        let delta = simd_quatf(angle: -.pi/2, axis: [0, -0.4, 0])
+                        rootAnchor.transform.rotation = simd_normalize(delta * currentRotation)
 
+                        content.add(rootAnchor)
+                    }
+                }
+                .edgesIgnoringSafeArea(.all)
+                .task {
+                    await loader.loadEntity(name: "cameraPolaroidAnimadaSM")
+
+                    if let anchor = loader.anchor {
+                        printAllEntities(anchor)
+
+                        if let data = UIImage(named: "fotoTeste")?.pngData() {
+                            await updatePolaroid(with: data, in: anchor)
+                        } else {
+                            print("Não consegui carregar fotoTeste.png")
+                        }
+                    }
+                }
+                .onTapGesture {
+                    playAnimation()
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .edgesIgnoringSafeArea(.all)
-            .task {
-                await loader.loadEntity(name: "cameraPolaroidAnimadaComTela")
-                if let anchor = loader.anchor {
-                       printAllEntities(anchor)
-                       
-                    if let data = UIImage(named: "fotoTeste")?.pngData() {
-                           await updatePolaroid(with: data, in: anchor)
-                       } else {
-                           print("Não consegui carregar fotoTeste.png")
-                       }
-                   }
-                
-
-            }
-            .onTapGesture {
-                playAnimation()
-            }
-            
         }
     }
-    
+
+
+    func applyGrayOverlay(to image: UIImage,
+                          gray: UIColor,
+                          intensity: CGFloat) -> UIImage? {
+
+        let rect = CGRect(origin: .zero, size: image.size)
+        UIGraphicsBeginImageContextWithOptions(image.size, false, image.scale)
+
+        guard let context = UIGraphicsGetCurrentContext() else {
+            return nil
+        }
+
+        // desenha a foto original
+        image.draw(in: rect)
+
+        // aplica camada cinza escura com intensidade controlada
+        context.setFillColor(gray.withAlphaComponent(intensity).cgColor)
+        context.fill(rect)
+
+        let result = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return result
+    }
+
+ 
     func updatePolaroid(with imageData: Data, in anchor: Entity) async {
         guard let uiImage = UIImage(data: imageData),
-              let cg = uiImage.cgImage else {
+              let _ = uiImage.cgImage else {
             print("Erro convertendo Data -> UIImage")
+            return
+        }
+
+        let overlayGray = UIColor(white: 0.02, alpha: 1.0)  // bem escuro
+
+        let intensity: CGFloat = 0.80
+
+        guard let tinted = applyGrayOverlay(to: uiImage,
+                                            gray: overlayGray,
+                                            intensity: intensity),
+              let tintedCG = tinted.cgImage else {
+            print("Erro ao aplicar overlay cinza")
             return
         }
 
@@ -69,12 +104,15 @@ struct CameraPolaroidView: View {
         }
 
         do {
+            // 5) Cria textura já mascarada
             let texture = try await TextureResource(
-                image: cg,
+                image: tintedCG,
                 options: .init(semantic: .color)
             )
+
             let wrappedTexture = MaterialParameters.Texture(texture)
 
+            // 6) Aplica no PhysicallyBasedMaterial
             var material = PhysicallyBasedMaterial()
             material.baseColor = .init(texture: wrappedTexture)
 
@@ -83,15 +121,14 @@ struct CameraPolaroidView: View {
                 target.model = model
             }
 
-            print("Textura atualizada com sucesso!")
+            print("Textura mascarada aplicada com sucesso!")
 
         } catch {
             print("Erro gerando TextureResource: \(error)")
         }
     }
 
-
-    
+   
     func printAllEntities(_ entity: Entity, indent: String = "") {
         print("\(indent)- \(entity.name) | \(type(of: entity))")
 
@@ -108,7 +145,6 @@ struct CameraPolaroidView: View {
         return nil
     }
 
-    
     func findEntityWithAnimation(in root: Entity) -> Entity? {
         if !root.availableAnimations.isEmpty {
             return root
@@ -120,24 +156,22 @@ struct CameraPolaroidView: View {
         }
         return nil
     }
-    
-    
+
     func playAnimation() {
         guard let anchor = loader.anchor else { return }
-        
-        
+
         if let anim = anchor.availableAnimations.first {
             anchor.playAnimation(anim.repeat(count: 1), transitionDuration: 0.3)
             return
         }
-        
-        
+
         if let entityWithAnim = findEntityWithAnimation(in: anchor),
            let anim = entityWithAnim.availableAnimations.first {
             entityWithAnim.playAnimation(anim.repeat(count: 1), transitionDuration: 0.2)
         }
     }
 }
+
 #Preview {
     CameraPolaroidView()
 }
