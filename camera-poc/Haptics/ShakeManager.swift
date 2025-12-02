@@ -16,7 +16,6 @@ class ShakeManager: ObservableObject {
     }
 
     // MARK: - Accelerometer Setup
-    
     private func startAccelerometerUpdates() {
         guard motionManager.isAccelerometerAvailable else {
             print("Accelerometer not available")
