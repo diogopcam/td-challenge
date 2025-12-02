@@ -29,6 +29,7 @@ struct CameraApp: App {
         WindowGroup {
             CameraScreen()
                 .environmentObject(vm)
+                .ignoresSafeArea()
         }
         .modelContainer(sharedModelContainer)
     }
