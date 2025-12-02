@@ -5,7 +5,6 @@
 //  Created by Diogo Camargo on 02/12/25.
 //
 
-
 class ButtonManager {
     static let shared = ButtonManager()
     private init() {}
@@ -14,7 +13,6 @@ class ButtonManager {
 
     func disable() {
         isEnabled = false
-        SoundManager.shared.playSound(named: "blocked") // opcional
     }
 
     func enable() {
