@@ -44,8 +44,6 @@ class ExposureButton {
     func handlePan(_ recognizer: UIPanGestureRecognizer, in arView: ARView) {
     
         if !ButtonManager.shared.isEnabled {
-            
-            // O toque só é reconhecido como gesto no .began
             if recognizer.state == .began {
                 HapticManager.shared.impact(.light)
                 SoundManager.shared.playSound(named: "offFlash")
@@ -54,71 +52,68 @@ class ExposureButton {
             return
         }
         
-        // ---- HABILITADO ----
         let location = recognizer.location(in: arView)
         
         switch recognizer.state {
             
-        case .began:
-            HapticManager.shared.selection()
-            
-            lastStepValue = value
-            
-            if let projected = arView.project(entity.position(relativeTo: nil)) {
-                centerScreenPosition = projected
-            } else {
-                centerScreenPosition = CGPoint(x: arView.bounds.midX, y: arView.bounds.midY)
-            }
-            
-            let dx = Float(location.x - centerScreenPosition.x)
-            let dy = Float(location.y - centerScreenPosition.y)
-            lastAngle = atan2(dy, dx)
-            
-            
-        case .changed:
-            let dx = Float(location.x - centerScreenPosition.x)
-            let dy = Float(location.y - centerScreenPosition.y)
-            
-            if hypot(dx, dy) < 20 { return }
-            
-            let currentAngle = atan2(dy, dx)
-            var deltaAngle = currentAngle - lastAngle
-            
-            if deltaAngle > .pi { deltaAngle -= .pi * 2 }
-            else if deltaAngle < -.pi { deltaAngle += .pi * 2 }
-            
-            lastAngle = currentAngle
-            
-            let maxAngle = Float(270.0 * .pi / 180.0)
-            let deltaStops = -(deltaAngle / maxAngle) * 4.0
-            
-            value = max(-2.0, min(2.0, value + deltaStops))
-            
-            let stepped = (value * 10).rounded() / 10
-            if stepped != lastStepValue {
-                HapticManager.shared.dialFeedback()
-                playExposureTick(for: stepped)
-                lastStepValue = stepped
-            }
-            
-            updateVisualRotation()
-            onValueChange?(value)
-            
-            
-        case .ended, .cancelled:
-            let snapped = (value * 10).rounded() / 10
-            value = max(-2.0, min(2.0, snapped))
-            updateVisualRotation()
-            onValueChange?(value)
-            
-            HapticManager.shared.impact(.light)
-            
-            
-        default:
-            break
+            case .began:
+                HapticManager.shared.selection()
+                
+                lastStepValue = value
+                
+                if let projected = arView.project(entity.position(relativeTo: nil)) {
+                    centerScreenPosition = projected
+                } else {
+                    centerScreenPosition = CGPoint(x: arView.bounds.midX, y: arView.bounds.midY)
+                }
+                
+                let dx = Float(location.x - centerScreenPosition.x)
+                let dy = Float(location.y - centerScreenPosition.y)
+                lastAngle = atan2(dy, dx)
+                
+                
+            case .changed:
+                let dx = Float(location.x - centerScreenPosition.x)
+                let dy = Float(location.y - centerScreenPosition.y)
+                
+                if hypot(dx, dy) < 20 { return }
+                
+                let currentAngle = atan2(dy, dx)
+                var deltaAngle = currentAngle - lastAngle
+                
+                if deltaAngle > .pi { deltaAngle -= .pi * 2 }
+                else if deltaAngle < -.pi { deltaAngle += .pi * 2 }
+                
+                lastAngle = currentAngle
+                
+                let maxAngle = Float(270.0 * .pi / 180.0)
+                let deltaStops = -(deltaAngle / maxAngle) * 4.0
+                
+                value = max(-2.0, min(2.0, value + deltaStops))
+                
+                let stepped = (value * 10).rounded() / 10
+                if stepped != lastStepValue {
+                    HapticManager.shared.dialFeedback()
+                    playExposureTick(for: stepped)
+                    lastStepValue = stepped
+                }
+                
+                updateVisualRotation()
+                onValueChange?(value)
+                
+                
+            case .ended, .cancelled:
+                let snapped = (value * 10).rounded() / 10
+                value = max(-2.0, min(2.0, snapped))
+                updateVisualRotation()
+                onValueChange?(value)
+                
+                HapticManager.shared.impact(.light)
+                
+            default:
+                break
         }
     }
-
     
     private func updateVisualRotation() {
         let degreesPerStop: Float = 67.5
@@ -129,12 +124,10 @@ class ExposureButton {
     }
     
     private func playExposureTick(for stepped: Float) {
-        // Normaliza o stepped para 0..1 (range -2..2 → 0..1)
         let normalized = (stepped + 2.0) / 4.0
         
-        // Converte para 0..5
         var index = Int(normalized * 6)
-        index = min(max(index, 0), 5) // clamp
+        index = min(max(index, 0), 5)
 
         let soundNames = ["exposure1","exposure2","exposure3","exposure4","exposure5","exposure6"]
 
