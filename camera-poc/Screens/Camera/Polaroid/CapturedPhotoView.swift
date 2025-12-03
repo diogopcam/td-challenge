@@ -8,6 +8,7 @@ struct CapturedPhotoView: View {
         ZStack {
             Polaroid3DView(image: image)
                 .edgesIgnoringSafeArea(.all)
+                .background(Color.clear)
 
             VStack {
                 HStack {

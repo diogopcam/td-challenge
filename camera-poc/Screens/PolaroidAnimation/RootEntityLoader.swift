@@ -12,11 +12,9 @@ import SwiftUI
 @Observable
 class RootEntityLoader{
     var anchor: AnchorEntity?
-    
 
     init() {
         self.anchor = AnchorEntity()
-
     }
 
     func loadEntity(name: String) async {

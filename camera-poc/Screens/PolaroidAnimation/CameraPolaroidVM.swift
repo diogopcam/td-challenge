@@ -83,17 +83,28 @@ class CameraPolaroidViewModel {
         return nil
     }
 
-    func playAnimation(in anchor: AnchorEntity?) {
+    func playAnimation(in anchor: AnchorEntity?, completion: @escaping () -> Void) {
         guard let anchor = anchor else { return }
 
-        if let anim = anchor.availableAnimations.first {
-            anchor.playAnimation(anim.repeat(count: 1), transitionDuration: 0.3)
+        let entity: Entity
+        let anim: AnimationResource
+
+        if let a = anchor.availableAnimations.first {
+            entity = anchor
+            anim = a
+        } else if let e = findEntityWithAnimation(in: anchor),
+                  let a = e.availableAnimations.first {
+            entity = e
+            anim = a
+        } else {
             return
         }
 
-        if let entityWithAnim = findEntityWithAnimation(in: anchor),
-           let anim = entityWithAnim.availableAnimations.first {
-            entityWithAnim.playAnimation(anim.repeat(count: 1), transitionDuration: 0.2)
+        entity.playAnimation(anim.repeat(count: 1), transitionDuration: 0.3)
+
+        let duration = anim.definition.duration
+        DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+            completion()
         }
     }
 

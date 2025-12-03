@@ -12,6 +12,7 @@ import UIKit
 struct CameraPolaroidView: View {
     @State private var viewModel = CameraPolaroidViewModel()
     @EnvironmentObject var vm: CameraVM
+    @State var showFinalPolaroid = false
 
     var body: some View {
         ZStack {
@@ -32,7 +33,9 @@ struct CameraPolaroidView: View {
                     content.add(rootAnchor)
                 }
             }
+            
             .edgesIgnoringSafeArea(.all)
+            
             .task {
                 await viewModel.loader.loadEntity(name: "cameraPolaroidAnimadaSM")
 
@@ -46,11 +49,19 @@ struct CameraPolaroidView: View {
                     }
                 }
             }
+            
             .onTapGesture {
-                viewModel.playAnimation(in: viewModel.loader.anchor)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                    vm.animationDidFinish()
+                viewModel.playAnimation(in: viewModel.loader.anchor) {
+                    withAnimation(.easeOut(duration: 0.6)) {
+                        showFinalPolaroid = true
+                    }
                 }
+            }
+            
+            if showFinalPolaroid, let img = vm.capturedImage {
+                Polaroid3DView(image: img)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .zIndex(999)
             }
         }
     }
