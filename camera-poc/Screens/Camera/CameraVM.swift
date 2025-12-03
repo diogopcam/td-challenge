@@ -150,7 +150,6 @@ class CameraVM: NSObject, ObservableObject, CameraVMProtocol {
         self.showAnimation = false
         self.showCapturedPhoto = true
     }
-
 }
 
 extension CameraVM: AVCapturePhotoCaptureDelegate {

@@ -39,8 +39,10 @@ struct CameraPolaroidView: View {
                 if let anchor = viewModel.loader.anchor {
                     viewModel.printAllEntities(anchor)
 
-                    if let data = UIImage(named: "fotoTeste")?.pngData() {
-                        await viewModel.updatePolaroid(with: data, in: anchor)
+                    if let data = vm.capturedImage {
+                        if let data = data.pngData() {
+                            await viewModel.updatePolaroid(with: data, in: anchor)
+                        }
                     }
                 }
             }
@@ -52,8 +54,4 @@ struct CameraPolaroidView: View {
             }
         }
     }
-}
-
-#Preview {
-    CameraPolaroidView()
 }

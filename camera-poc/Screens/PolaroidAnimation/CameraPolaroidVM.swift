@@ -73,7 +73,6 @@ class CameraPolaroidViewModel {
         }
     }
 
-    
     func findEntity(named name: String, in root: Entity) -> Entity? {
         if root.name == name { return root }
         for child in root.children {
