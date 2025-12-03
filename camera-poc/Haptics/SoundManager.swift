@@ -14,7 +14,6 @@ final class SoundManager {
     }
 
     // MARK: - Audio Session Setup
-    
     private func setupAudioSession() {
         do {
             try AVAudioSession.sharedInstance().setCategory(

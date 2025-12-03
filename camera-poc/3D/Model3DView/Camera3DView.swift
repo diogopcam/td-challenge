@@ -28,26 +28,11 @@ struct Camera3DView: UIViewRepresentable {
         do {
             let modelEntity = try Entity.load(named: "cameraModel")
             
-            let scaleFix: Float = 3.0
-            modelEntity.scale = SIMD3<Float>(repeating: scaleFix)
-            
-            let rotationX = simd_quatf(angle: .pi, axis: SIMD3<Float>(1, 0, 0))
-            let rotationY = simd_quatf(angle: .pi/2, axis: SIMD3<Float>(0, 1, 0))
-            let rotationZ = simd_quatf(angle: .pi + .pi/2, axis: SIMD3<Float>(0, 0, 1))
-            
-            modelEntity.orientation = rotationX * rotationZ * rotationY
-            
             modelEntity.generateCollisionShapes(recursive: true)
             
             let anchor = AnchorEntity(world: .zero)
             anchor.addChild(modelEntity)
             arView.scene.addAnchor(anchor)
-            
-            let bounds = modelEntity.visualBounds(relativeTo: anchor)
-            let center = bounds.center
-            let distance: Float = -50.0
-            
-            modelEntity.position = SIMD3<Float>(-center.x, -center.y, distance)
             
             context.coordinator.arView = arView
             context.coordinator.rootModelEntity = modelEntity

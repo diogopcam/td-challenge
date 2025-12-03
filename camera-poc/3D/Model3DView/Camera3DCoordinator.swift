@@ -16,13 +16,13 @@ class Camera3DCoordinator: NSObject, UIGestureRecognizerDelegate {
     var onDismissAction: (() -> Void)?
 
     let cameraVM: CameraVM
-    var exposureButton: ExposureButtonMF?
-    var timerSlider: TimerSliderMF?
-    var captureButton: CaptureButtonMF?
-    var flashButton: FlashButtonMF?
+    var exposureButton: ExposureButton?
+    var timerSlider: TimerSlider?
+    var captureButton: CaptureButton?
+    var flashButton: FlashButton?
     
-    private var activeKnob: ExposureButtonMF?
-    private var activeSlider: TimerSliderMF?
+    private var activeKnob: ExposureButton?
+    private var activeSlider: TimerSlider?
     
     var cancellables = Set<AnyCancellable>()
     
@@ -43,13 +43,13 @@ class Camera3DCoordinator: NSObject, UIGestureRecognizerDelegate {
     }
 
     func setupControls(root: Entity) {
-        if let expBtn = ExposureButtonMF(rootEntity: root, entityName: "Cylinder") {
+        if let expBtn = ExposureButton(rootEntity: root, entityName: "Cylinder") {
             self.exposureButton = expBtn
             expBtn.onValueChange = { [weak self] newValue in
                 self?.cameraVM.setExposureBias(to: -newValue)
             }
         }
-        if let timer = TimerSliderMF(rootEntity: root) {
+        if let timer = TimerSlider(rootEntity: root) {
             self.timerSlider = timer
             timer.onValueChange = { [weak self] val in
                 guard let self = self else { return }
@@ -57,17 +57,30 @@ class Camera3DCoordinator: NSObject, UIGestureRecognizerDelegate {
                 print("⏱ Novo timer: \(self.cameraVM.timerDelay)s")
             }
         }
-        if let flash = FlashButtonMF(rootEntity: root, entityName: "FlashSelector") {
+        if let flash = FlashButton(rootEntity: root, entityName: "FlashSelector") {
             self.flashButton = flash
             flash.onToggle = { [weak self] isOn in
                 self?.cameraVM.toggleFlash()
             }
         }
-        if let capture = CaptureButtonMF(rootEntity: root, entityName: "CaptureButton") {
+        if let capture = CaptureButton(rootEntity: root, entityName: "CaptureButton") {
             self.captureButton = capture
-            capture.onCapture = {
+            capture.onCapture = { [weak self] in
+                guard let self = self else { return }
+                
+                // Se houver delay, desabilitar botão ANTES de iniciar o countdown
+                if self.cameraVM.timerDelay > 0 {
+                    capture.disable()
+                    
+                    // Quando o countdown terminar, reabilita o botão
+                    self.cameraVM.onCountdownFinished = {
+                        capture.enable()
+                    }
+                }
+
                 self.cameraVM.takePhoto()
             }
+
         }
     }
     

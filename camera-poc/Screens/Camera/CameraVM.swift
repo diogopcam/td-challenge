@@ -98,7 +98,7 @@ class CameraVM: NSObject, ObservableObject, CameraVMProtocol {
         }
         
         if let videoConnection = videoOutput.connection(with: .video) {
-            videoConnection.videoOrientation = .landscapeRight
+            videoConnection.videoOrientation = .landscapeLeft
         }
     }
     
@@ -120,22 +120,30 @@ class CameraVM: NSObject, ObservableObject, CameraVMProtocol {
     }
     
     func startCountdown() {
+        ButtonManager.shared.disable()   // 🔒 Bloqueia todos os botões
+
         countdown = timerDelay
         var remaining = timerDelay
 
         Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { timer in
             remaining -= 1
+
             DispatchQueue.main.async {
                 if remaining > 0 {
                     self.countdown = remaining
                 } else {
                     timer.invalidate()
                     self.countdown = nil
+
+                    ButtonManager.shared.enable()
+
                     self.captureNow()
                 }
             }
         }
     }
+    
+    var onCountdownFinished: (() -> Void)?
 
 }
 
@@ -213,7 +221,7 @@ extension CameraVM {
         }
 
         if let connection = output.connection(with: .video) {
-            connection.videoOrientation = .landscapeRight
+            connection.videoOrientation = .landscapeLeft
         }
 
         output.capturePhoto(with: settings, delegate: self)
