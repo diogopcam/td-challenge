@@ -24,6 +24,12 @@ struct CameraScreen: View {
                     .animation(.easeInOut, value: count)
             }
         }
+        // 1. Tela da animação Polaroid
+        .fullScreenCover(isPresented: $vm.showAnimation) {
+            CameraPolaroidView()
+                .environmentObject(vm)
+        }
+        // 2. Tela final com a foto
         .fullScreenCover(isPresented: $vm.showCapturedPhoto) {
             if let img = vm.capturedImage {
                 CapturedPhotoView(image: img) {

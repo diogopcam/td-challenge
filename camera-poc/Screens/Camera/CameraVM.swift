@@ -30,6 +30,7 @@ class CameraVM: NSObject, ObservableObject, CameraVMProtocol {
             setExposureBias(to: exposure)
         }
     }
+    @Published var showAnimation: Bool = false
     
     var currentFramePublisher: Published<UIImage?>.Publisher { $currentFrame }
     
@@ -120,7 +121,7 @@ class CameraVM: NSObject, ObservableObject, CameraVMProtocol {
     }
     
     func startCountdown() {
-        ButtonManager.shared.disable()   // 🔒 Bloqueia todos os botões
+        ButtonManager.shared.disable()
 
         countdown = timerDelay
         var remaining = timerDelay
@@ -144,6 +145,11 @@ class CameraVM: NSObject, ObservableObject, CameraVMProtocol {
     }
     
     var onCountdownFinished: (() -> Void)?
+    
+    func animationDidFinish() {
+        self.showAnimation = false
+        self.showCapturedPhoto = true
+    }
 
 }
 
@@ -170,7 +176,7 @@ extension CameraVM: AVCapturePhotoCaptureDelegate {
                 self.capturedImage = image
             }
             
-            self.showCapturedPhoto = true
+//            self.showCapturedPhoto = true
         }
     }
 }
@@ -227,6 +233,7 @@ extension CameraVM {
         output.capturePhoto(with: settings, delegate: self)
         print("Photo captured!")
         self.isCapturing = false
+        self.showAnimation = true
     }
     
     func toggleFlash() {

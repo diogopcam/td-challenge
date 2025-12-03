@@ -11,6 +11,7 @@ import UIKit
 
 struct CameraPolaroidView: View {
     @State private var viewModel = CameraPolaroidViewModel()
+    @EnvironmentObject var vm: CameraVM
 
     var body: some View {
         ZStack {
@@ -45,6 +46,9 @@ struct CameraPolaroidView: View {
             }
             .onTapGesture {
                 viewModel.playAnimation(in: viewModel.loader.anchor)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                    vm.animationDidFinish()
+                }
             }
         }
     }
