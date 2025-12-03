@@ -6,19 +6,8 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXContainerItemProxy section */
-		ADDC67A12ECCF9BB00332487 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = ADD662112EBD09EC00C05B59 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = ADD662182EBD09EC00C05B59;
-			remoteInfo = "camera-poc";
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXFileReference section */
 		ADD662192EBD09EC00C05B59 /* camera-poc.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "camera-poc.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		ADDC679D2ECCF9BB00332487 /* td-tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "td-tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -40,22 +29,10 @@
 			path = "camera-poc";
 			sourceTree = "<group>";
 		};
-		ADDC679E2ECCF9BB00332487 /* td-tests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "td-tests";
-			sourceTree = "<group>";
-		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		ADD662162EBD09EC00C05B59 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		ADDC679A2ECCF9BB00332487 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -69,7 +46,6 @@
 			isa = PBXGroup;
 			children = (
 				ADD6621B2EBD09EC00C05B59 /* camera-poc */,
-				ADDC679E2ECCF9BB00332487 /* td-tests */,
 				ADD6621A2EBD09EC00C05B59 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -78,7 +54,6 @@
 			isa = PBXGroup;
 			children = (
 				ADD662192EBD09EC00C05B59 /* camera-poc.app */,
-				ADDC679D2ECCF9BB00332487 /* td-tests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -108,29 +83,6 @@
 			productReference = ADD662192EBD09EC00C05B59 /* camera-poc.app */;
 			productType = "com.apple.product-type.application";
 		};
-		ADDC679C2ECCF9BB00332487 /* td-tests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = ADDC67A32ECCF9BB00332487 /* Build configuration list for PBXNativeTarget "td-tests" */;
-			buildPhases = (
-				ADDC67992ECCF9BB00332487 /* Sources */,
-				ADDC679A2ECCF9BB00332487 /* Frameworks */,
-				ADDC679B2ECCF9BB00332487 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				ADDC67A22ECCF9BB00332487 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				ADDC679E2ECCF9BB00332487 /* td-tests */,
-			);
-			name = "td-tests";
-			packageProductDependencies = (
-			);
-			productName = "td-tests";
-			productReference = ADDC679D2ECCF9BB00332487 /* td-tests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -143,10 +95,6 @@
 				TargetAttributes = {
 					ADD662182EBD09EC00C05B59 = {
 						CreatedOnToolsVersion = 26.0.1;
-					};
-					ADDC679C2ECCF9BB00332487 = {
-						CreatedOnToolsVersion = 26.0.1;
-						TestTargetID = ADD662182EBD09EC00C05B59;
 					};
 				};
 			};
@@ -165,20 +113,12 @@
 			projectRoot = "";
 			targets = (
 				ADD662182EBD09EC00C05B59 /* camera-poc */,
-				ADDC679C2ECCF9BB00332487 /* td-tests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		ADD662172EBD09EC00C05B59 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		ADDC679B2ECCF9BB00332487 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -195,22 +135,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		ADDC67992ECCF9BB00332487 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		ADDC67A22ECCF9BB00332487 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = ADD662182EBD09EC00C05B59 /* camera-poc */;
-			targetProxy = ADDC67A12ECCF9BB00332487 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		ADD662242EBD09ED00C05B59 /* Debug */ = {
@@ -341,7 +266,8 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 7BUDD8LAH7;
+
+				DEVELOPMENT_TEAM = 62ZMZB55F5;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
@@ -351,7 +277,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -376,7 +302,8 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 7BUDD8LAH7;
+				DEVELOPMENT_TEAM = 62ZMZB55F5;
+
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSApplicationCategoryType = "";
@@ -386,7 +313,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
+
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -401,56 +328,6 @@
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
-		};
-		ADDC67A42ECCF9BB00332487 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 7BUDD8LAH7;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "academy.td-tests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = YES;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/camera-poc.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/camera-poc";
-			};
-			name = Debug;
-		};
-		ADDC67A52ECCF9BB00332487 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 7BUDD8LAH7;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "academy.td-tests";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				STRING_CATALOG_GENERATE_SYMBOLS = NO;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = YES;
-				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = NO;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/camera-poc.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/camera-poc";
 			};
 			name = Release;
 		};
@@ -471,15 +348,6 @@
 			buildConfigurations = (
 				ADD662272EBD09ED00C05B59 /* Debug */,
 				ADD662282EBD09ED00C05B59 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		ADDC67A32ECCF9BB00332487 /* Build configuration list for PBXNativeTarget "td-tests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				ADDC67A42ECCF9BB00332487 /* Debug */,
-				ADDC67A52ECCF9BB00332487 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

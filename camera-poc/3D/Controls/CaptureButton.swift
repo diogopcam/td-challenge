@@ -50,7 +50,8 @@ class CaptureButton {
         SoundManager.shared.playSound(named: "shutter")
         
         var pressed = baseTransform
-        pressed.translation.x -= 0.12
+        //pressed.translation.y -= 0.003
+        pressed.scale -= 0.03
         
         entity.move(
             to: pressed,
