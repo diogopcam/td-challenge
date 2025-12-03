@@ -406,6 +406,38 @@ final class HapticManager {
         playPattern(events: [transient, continuous])
     }
     
+    /// Feedback háptico intenso e contínuo para revelação da polaroid
+    func playIntenseRevealHaptic() {
+        guard supportsHaptics else { return }
+        ensureEngineRunning()
+
+        // Vibração contínua intensa
+        let continuous = CHHapticEvent(
+            eventType: .hapticContinuous,
+            parameters: [
+                CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0),
+                CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.3),
+            ],
+            relativeTime: 0,
+            duration: 0.3
+        )
+
+        playPattern(events: [continuous])
+    }
+    
+    /// Feedback háptico de conclusão da revelação (diferente do contínuo)
+    func playRevealCompleteHaptic() {
+        guard supportsHaptics else { return }
+        ensureEngineRunning()
+
+        // Padrão de sucesso: dois pulsos fortes seguidos
+        let firstPulse = createTransientEvent(intensity: 1.0, sharpness: 0.8, time: 0)
+        let secondPulse = createTransientEvent(intensity: 0.9, sharpness: 0.7, time: 0.15)
+        let thirdPulse = createTransientEvent(intensity: 0.8, sharpness: 0.6, time: 0.3)
+
+        playPattern(events: [firstPulse, secondPulse, thirdPulse])
+    }
+    
     // MARK: - Helper Methods
     
     private func createTransientEvent(intensity: Float, sharpness: Float, time: TimeInterval) -> CHHapticEvent {
