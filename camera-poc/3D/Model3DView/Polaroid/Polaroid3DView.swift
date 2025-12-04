@@ -10,26 +10,22 @@ import RealityKit
 
 struct Polaroid3DView: View {
     var image: UIImage
-    
+
     init(image: UIImage) {
         self.image = image
     }
     
     var body: some View {
         RealityView { content in
-            // 1. Carrega o modelo
+            
             guard let modelEntity = try? Entity.load(named: "polaroidNew") else {
                 return
             }
             
             applyImage(entity: modelEntity)
             
-            // AQUI A IMAGEM DEVE SER APLICADA COM O TOM CINZA
-//            applyImage()
-            // 2. Gera colisão (opcional)
             modelEntity.generateCollisionShapes(recursive: true)
 
-            // 4. Cria o anchor e adiciona o modelo
             let anchor = AnchorEntity(.camera)
             anchor.addChild(modelEntity)
             content.add(anchor)
@@ -62,37 +58,13 @@ struct Polaroid3DView: View {
             intensity: intensity
         ) ?? flipped
     }
-
-    
-//    func applyImage(entity: Entity) {
-//        let imageNode = findImagePolaroidEntity(in: entity)
-//        
-//        let processed = processedImage(intensity: 10)
-//        
-//        guard let cgImage = processed.cgImage else { return }
-//        
-//        do {
-//            let texture = try TextureResource(
-//                image: cgImage,
-//                options: .init(semantic: .color)
-//            )
-//            
-//            var material = SimpleMaterial()
-//            material.color = .init(tint: .white, texture: .init(texture))
-//            imageNode?.model?.materials = [material]
-//            
-//        } catch {
-//            print("Erro criando textura: \(error)")
-//        }
-//    }
     
     func applyImage(entity: Entity) {
         guard let imageNode = findImagePolaroidEntity(in: entity) else { return }
 
-        // Intensidade inicial bem forte
         var intensity: CGFloat = 0.9
         let steps: CGFloat = 60
-        let interval: TimeInterval = 15 / 60  // 15s total
+        let interval: TimeInterval = 15 / 60
 
         func updateTexture() {
             let processed = processedImage(intensity: intensity)
@@ -113,13 +85,10 @@ struct Polaroid3DView: View {
             }
         }
 
-        // Aplica textura inicial (cinza forte)
         updateTexture()
 
-        // Timer para revelar
         Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
 
-            // Diminui a intensidade do cinza progressivamente
             intensity -= 0.9 / steps
             
             if intensity <= 0 {
