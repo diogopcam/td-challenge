@@ -52,6 +52,39 @@ final class SoundManager {
         }
     }
     
+    // MARK: - Continuous Sound Playback
+    private var continuousPlayer: AVAudioPlayer?
+    
+    /// Toca um som continuamente em loop até ser parado
+    func playContinuousSound(named name: String, volume: Float = 1.0) {
+        // Se já está tocando, não faz nada
+        if let player = continuousPlayer, player.isPlaying {
+            return
+        }
+        
+        guard let asset = NSDataAsset(name: name) else {
+            print("Sound asset not found: \(name)")
+            return
+        }
+
+        do {
+            let player = try AVAudioPlayer(data: asset.data)
+            player.volume = volume
+            player.numberOfLoops = -1 // Loop infinito
+            player.prepareToPlay()
+            player.play()
+            continuousPlayer = player
+        } catch {
+            print("Error playing continuous sound '\(name)': \(error.localizedDescription)")
+        }
+    }
+    
+    /// Para o som contínuo
+    func stopContinuousSound() {
+        continuousPlayer?.stop()
+        continuousPlayer = nil
+    }
+    
     // MARK: - Cleanup
     private func cleanupFinishedPlayers() {
         players.removeAll { !$0.isPlaying }

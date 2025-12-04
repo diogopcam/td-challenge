@@ -51,6 +51,8 @@ struct CameraPolaroidView: View {
             }
             
             .onTapGesture {
+                // Só permite toque se ainda não mostrou a polaroid final
+                guard !showFinalPolaroid else { return }
                 viewModel.playAnimation(in: viewModel.loader.anchor) {
                     withAnimation(.easeOut(duration: 0.6)) {
                         showFinalPolaroid = true
@@ -63,6 +65,27 @@ struct CameraPolaroidView: View {
                     Polaroid3DView(viewModel: Polaroid3DViewModel(image: img))
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                         .zIndex(999)
+            }
+            
+            // Botão X para voltar à tela da câmera
+            if showFinalPolaroid {
+                VStack {
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            vm.showAnimation = false
+                        }) {
+                            Image(systemName: "xmark")
+                                .resizable()
+                                .frame(width: 24, height: 24)
+                                .foregroundColor(.white)
+                                .shadow(radius: 10)
+                                .padding()
+                        }
+                    }
+                    Spacer()
+                }
+                .zIndex(1000)
             }
         }
     }
