@@ -59,10 +59,10 @@ struct CameraPolaroidView: View {
             }
             
             if showFinalPolaroid, let img = vm.capturedImage {
-        
-                    Polaroid3DView(viewModel: Polaroid3DViewModel(image: img))
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .zIndex(999)
+                Polaroid3DView(viewModel: Polaroid3DViewModel(image: img))
+                    .polaroidTilt() 
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .zIndex(999)
             }
         }
     }
