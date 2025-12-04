@@ -97,7 +97,6 @@ class Polaroid3DViewModel {
         return nil
     }
     
-    
     func fixImageOrientation(_ image: UIImage) -> UIImage {
         if image.imageOrientation == .up {
             return image
@@ -109,7 +108,6 @@ class Polaroid3DViewModel {
         UIGraphicsEndImageContext()
         return fixed
     }
-    
     
     func flipImageHorizontally(_ img: UIImage) -> UIImage? {
         UIGraphicsBeginImageContextWithOptions(img.size, false, img.scale)
@@ -124,7 +122,6 @@ class Polaroid3DViewModel {
         UIGraphicsEndImageContext()
         return result
     }
-    
     
     func applyGrayOverlay(to image: UIImage,
                           gray: UIColor,
