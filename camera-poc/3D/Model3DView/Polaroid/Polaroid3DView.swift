@@ -13,20 +13,22 @@ struct Polaroid3DView: View {
     
     var body: some View {
         RealityView { content in
+
             if let modelEntity = try? Entity.load(named: "polaroidNew") {
                 
                 modelEntity.generateCollisionShapes(recursive: true)
                 
-                // Aplica a textura inicial (escura)
-                viewModel.applyTexture(to: modelEntity)
-                
-                // Inicia animação de revelação
-                viewModel.startRevealAnimation(on: modelEntity)
+                viewModel.modelEntity = modelEntity
+            
+                viewModel.applyTexture()
                 
                 let anchor = AnchorEntity(.camera)
                 anchor.addChild(modelEntity)
                 content.add(anchor)
             }
+        }
+        .task {
+            viewModel.startRevealAnimation()
         }
         .background(.clear)
     }

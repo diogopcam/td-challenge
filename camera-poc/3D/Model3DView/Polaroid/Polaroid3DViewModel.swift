@@ -12,18 +12,17 @@ import RealityKit
 class Polaroid3DViewModel {
     var image: UIImage
     var progress: CGFloat = 0.0
-    
-    private var timer: Timer?
+    var intensity: CGFloat = 0.9
+    var modelEntity: Entity?
+    var timer: Timer?
     
     init(image: UIImage) {
         self.image = image
     }
     
-    func applyTexture(to modelEntity: Entity) {
-        guard let imageNode = findImagePolaroidEntity(in: modelEntity) else {
-            print("imagePolaroid não encontrado no modelo 3D")
-            return
-        }
+    func applyTexture() {
+        guard let model = modelEntity,
+                     let imageNode = findImagePolaroidEntity(in: model) else { return }
         
         let processed = processedImage()
         
@@ -44,53 +43,45 @@ class Polaroid3DViewModel {
         }
     }
     
-    // MARK: - Processamento de Imagem
     private func processedImage() -> UIImage {
         let normalized = fixImageOrientation(image)
         
         // Flip horizontal
         let flipped = flipImageHorizontally(normalized) ?? normalized
         
-        // Intensidade inicial do overlay
-        let initialIntensity: CGFloat = 0.9
+        let currentIntensity = intensity * (1 - progress)
         
-        let currentIntensity = initialIntensity * (1 - progress)
-        
-        let tinted = applyGrayOverlay(
-            to: flipped,
-            gray: UIColor(white: 0.02, alpha: 1),
-            intensity: currentIntensity
-        ) ?? flipped
-        
-        return tinted
+        return applyGrayOverlay(
+                   to: flipped,
+                   gray: UIColor(white: 0.02, alpha: 1),
+                   intensity: currentIntensity
+               ) ?? flipped
     }
-    
-    // MARK: - Timer de revelação
-    func startRevealAnimation(on model: Entity) {
+
+    func startRevealAnimation() {
         timer?.invalidate()
         
-        let duration: CGFloat = 15
         let steps = 60
-        let interval = duration / CGFloat(steps)
-        
+        let interval = 15.0 / 60.0
         var current = 0
         
-        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] t in
-            guard let self = self else { return }
-            
-            current += 1
-            self.progress = CGFloat(current) / CGFloat(steps)
-            
-            // Por que aplicar textura de novo? Não seria mais fácil apenas atualizar o estado de acordo com a contagem?
-            self.applyTexture(to: model)
-            
-            if self.progress >= 1 {
-                t.invalidate()
+        DispatchQueue.main.async {
+            self.timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] t in
+                guard let self = self else { return }
+                
+                current += 1
+                self.progress = CGFloat(current) / CGFloat(steps)
+                
+                self.applyTexture()  // Isso deve estar no main thread
+                
+                if current >= steps {
+                    t.invalidate()
+                    self.timer = nil
+                }
             }
         }
     }
     
-    // MARK: - Utilidades
     func findImagePolaroidEntity(in entity: Entity) -> ModelEntity? {
         if let modelEntity = entity as? ModelEntity,
            entity.name.lowercased().contains("imagepolaroid") {
