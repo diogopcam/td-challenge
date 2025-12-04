@@ -15,6 +15,12 @@ struct CameraScreen: View {
             Camera3DView()
                 .environmentObject(vm)
             
+            if !vm.isCameraAuthorized {
+                PermissionView()
+                    .transition(.opacity)
+                    .zIndex(1) 
+            }
+            
         if let count = vm.countdown {
                 Text("\(count)")
                     .font(.system(size: 120, weight: .bold))

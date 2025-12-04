@@ -11,7 +11,14 @@ import RealityKit
 
 class Camera3DCoordinator: NSObject, UIGestureRecognizerDelegate {
     weak var arView: ARView?
-    var rootModelEntity: Entity?
+    var rootModelEntity: Entity? {
+        didSet {
+                // Assim que o modelo for carregado, se não houver frame da câmera, aplica o placeholder
+                if let root = rootModelEntity, cameraVM.currentFrame == nil {
+                    applyPlaceholder(to: root)
+                }
+            }
+    }
     
     var onDismissAction: (() -> Void)?
 
@@ -84,6 +91,24 @@ class Camera3DCoordinator: NSObject, UIGestureRecognizerDelegate {
         }
     }
     
+    func applyPlaceholder(to root: Entity) {
+        guard let photoPlaneEntity = findModelEntity(named: "PhotoPlane", in: root) else { return }
+        
+        let placeholderImage = UIImage(named: "emptyImage") ?? UIImage(systemName: "camera.fill")
+        
+        guard let cgImage = placeholderImage?.cgImage else { return }
+        
+        do {
+            let texture = try TextureResource.generate(from: cgImage, options: .init(semantic: .color))
+            var material = UnlitMaterial()
+            material.color = .init(tint: .white, texture: .init(texture))
+            
+            photoPlaneEntity.model?.materials = [material]
+        } catch {
+            print("Erro ao aplicar placeholder: \(error)")
+        }
+    }
+    
     func applyCameraImage(_ image: UIImage, to root: Entity) {
         guard let photoPlaneEntity = findModelEntity(named: "PhotoPlane", in: root) else { return }
         guard let cgImage = image.cgImage else { return }
@@ -109,6 +134,8 @@ class Camera3DCoordinator: NSObject, UIGestureRecognizerDelegate {
     }
     
     @objc func handlePress(_ recognizer: UILongPressGestureRecognizer) {
+        guard cameraVM.isCameraAuthorized else { return }
+        
         guard let arView = arView else { return }
         let location = recognizer.location(in: arView)
         
@@ -131,6 +158,8 @@ class Camera3DCoordinator: NSObject, UIGestureRecognizerDelegate {
     }
     
     @objc func handlePan(_ recognizer: UIPanGestureRecognizer) {
+        guard cameraVM.isCameraAuthorized else { return }
+        
         guard let arView = arView else { return }
         switch recognizer.state {
         case .began:
