@@ -8,28 +8,44 @@
 import Foundation
 import RealityKit
 import SwiftUI
+import CoreImage
 
 @Observable
 class CameraPolaroidViewModel {
 
     let loader = RootEntityLoader()
-    func applyGrayOverlay(to image: UIImage,
-                          gray: UIColor,
-                          intensity: CGFloat) -> UIImage? {
-
-        let rect = CGRect(origin: .zero, size: image.size)
-        UIGraphicsBeginImageContextWithOptions(image.size, false, image.scale)
-
-        guard let context = UIGraphicsGetCurrentContext() else { return nil }
-
-        image.draw(in: rect)
-
-        context.setFillColor(gray.withAlphaComponent(intensity).cgColor)
-        context.fill(rect)
-
-        let result = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        return result
+    private var hasPlayedAnimation = false
+    /// Aplica filtro de polaroid antiga usando Core Image
+    private func applyPolaroidFilter(to image: UIImage) -> UIImage? {
+        guard let ciImage = CIImage(image: image) else { return image }
+        
+        guard let filteredImage = applyPolaroidEffect(to: ciImage) else { return image }
+        
+        let context = CIContext()
+        guard let cgImage = context.createCGImage(filteredImage, from: filteredImage.extent) else {
+            return image
+        }
+        
+        return UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
+    }
+    
+    /// Aplica efeito de polaroid antiga usando Core Image filters
+    private func applyPolaroidEffect(to inputImage: CIImage) -> CIImage? {
+        // 1. Aplicar efeito instantâneo (look vintage)
+        let instantFilter = CIFilter.photoEffectInstant()
+        instantFilter.inputImage = inputImage
+        
+        guard let instantOutput = instantFilter.outputImage else {
+            return nil
+        }
+        
+        // 2. Aplicar vinheta suave (cantos levemente escurecidos, mais autêntico)
+        let vignetteFilter = CIFilter.vignette()
+        vignetteFilter.inputImage = instantOutput
+        vignetteFilter.intensity = 0.5  // Reduzido de 1.0 para menos escuro
+        vignetteFilter.radius = 1.2     // Aumentado de 2.0 para vinheta mais suave
+        
+        return vignetteFilter.outputImage
     }
 
     
@@ -40,14 +56,10 @@ class CameraPolaroidViewModel {
             return
         }
 
-        let overlayGray = UIColor(white: 0.02, alpha: 1.0)
-        let intensity: CGFloat = 0.80
-
-        guard let tinted = applyGrayOverlay(to: uiImage,
-                                            gray: overlayGray,
-                                            intensity: intensity),
-              let tintedCG = tinted.cgImage else {
-            print("Erro aplicando overlay cinza")
+        // Aplica filtro de polaroid antiga usando Core Image
+        guard let filteredImage = applyPolaroidFilter(to: uiImage),
+              let tintedCG = filteredImage.cgImage else {
+            print("Erro aplicando filtro de polaroid")
             return
         }
 

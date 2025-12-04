@@ -7,6 +7,7 @@
 
 import SwiftUI
 import RealityKit
+import CoreImage
 
 @Observable
 class Polaroid3DViewModel {
@@ -49,13 +50,56 @@ class Polaroid3DViewModel {
         // Flip horizontal
         let flipped = flipImageHorizontally(normalized) ?? normalized
         
+        // Aplica filtro de polaroid antiga
+        guard let filteredImage = applyPolaroidFilter(to: flipped) else {
+            return flipped
+        }
+        
+        // Durante a revelação, aplica overlay escuro que vai diminuindo
         let currentIntensity = intensity * (1 - progress)
         
-        return applyGrayOverlay(
-                   to: flipped,
-                   gray: UIColor(white: 0.02, alpha: 1),
-                   intensity: currentIntensity
-               ) ?? flipped
+        if currentIntensity > 0 {
+            return applyGrayOverlay(
+                       to: filteredImage,
+                       gray: UIColor(white: 0.02, alpha: 1),
+                       intensity: currentIntensity
+                   ) ?? filteredImage
+        }
+        
+        return filteredImage
+    }
+    
+    /// Aplica filtro de polaroid antiga usando Core Image
+    private func applyPolaroidFilter(to image: UIImage) -> UIImage? {
+        guard let ciImage = CIImage(image: image) else { return image }
+        
+        guard let filteredImage = applyPolaroidEffect(to: ciImage) else { return image }
+        
+        let context = CIContext()
+        guard let cgImage = context.createCGImage(filteredImage, from: filteredImage.extent) else {
+            return image
+        }
+        
+        return UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
+    }
+    
+    /// Aplica efeito de polaroid antiga usando Core Image filters
+    private func applyPolaroidEffect(to inputImage: CIImage) -> CIImage? {
+        // 1. Aplicar efeito instantâneo (look vintage)
+        let instantFilter = CIFilter.photoEffectInstant()
+        instantFilter.inputImage = inputImage
+        
+        guard let instantOutput = instantFilter.outputImage else {
+            return nil
+        }
+        
+        // 2. Aplicar vinheta suave (cantos levemente escurecidos, mais autêntico)
+        let vignetteFilter = CIFilter.vignette()
+        vignetteFilter.inputImage = instantOutput
+        vignetteFilter.intensity = 0.5  // Reduzido de 1.0 para menos escuro
+        vignetteFilter.radius = 1.2     // Aumentado de 2.0 para vinheta mais suave
+        
+        return vignetteFilter.outputImage
     }
 
     func startRevealAnimation() {
