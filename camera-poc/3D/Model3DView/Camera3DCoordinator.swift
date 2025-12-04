@@ -11,7 +11,14 @@ import RealityKit
 
 class Camera3DCoordinator: NSObject, UIGestureRecognizerDelegate {
     weak var arView: ARView?
-    var rootModelEntity: Entity?
+    var rootModelEntity: Entity? {
+        didSet {
+                // Assim que o modelo for carregado, se não houver frame da câmera, aplica o placeholder
+                if let root = rootModelEntity, cameraVM.currentFrame == nil {
+                    applyPlaceholder(to: root)
+                }
+            }
+    }
     
     var onDismissAction: (() -> Void)?
 
@@ -81,6 +88,28 @@ class Camera3DCoordinator: NSObject, UIGestureRecognizerDelegate {
                 self.cameraVM.takePhoto()
             }
 
+        }
+    }
+    
+    func applyPlaceholder(to root: Entity) {
+        // Busca o PhotoPlane
+        guard let photoPlaneEntity = findModelEntity(named: "PhotoPlane", in: root) else { return }
+        
+        // Tenta carregar a imagem 'fundotela' dos Assets ou usa um ícone de sistema como fallback
+        let placeholderImage = UIImage(named: "placeholderImage") ?? UIImage(systemName: "camera.fill")
+        
+        guard let cgImage = placeholderImage?.cgImage else { return }
+        
+        do {
+            // Cria a textura e o material
+            let texture = try TextureResource.generate(from: cgImage, options: .init(semantic: .color))
+            var material = UnlitMaterial()
+            material.color = .init(tint: .white, texture: .init(texture))
+            
+            // Aplica o material ao PhotoPlane
+            photoPlaneEntity.model?.materials = [material]
+        } catch {
+            print("Erro ao aplicar placeholder: \(error)")
         }
     }
     
