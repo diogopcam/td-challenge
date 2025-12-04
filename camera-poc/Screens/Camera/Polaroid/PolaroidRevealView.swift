@@ -18,9 +18,8 @@ struct PolaroidRevealView: View {
     @State private var isRevealed: Bool = false
     @State private var cancellables = Set<AnyCancellable>()
     @State private var lastShakeTime: Date = Date()
-    @State private var isRevealing: Bool = false // Controla se a revelação começou
     
-    private let minShakeInterval: TimeInterval = 0.15 // Intervalo mínimo entre haptics/sons (reduzido para ser mais rápido)
+    private let minShakeInterval: TimeInterval = 0.15 // Intervalo mínimo entre haptics (reduzido para ser mais rápido)
     private let revealThreshold: Double = 0.01 // Opacidade mínima do overlay para considerar revelado
     private let opacityReduction: Double = 0.12 // Quantidade de opacidade removida por shake (aumentado para revelar mais rápido)
     
@@ -120,8 +119,6 @@ struct PolaroidRevealView: View {
         }
         .onDisappear {
             cancellables.removeAll()
-            // Para o som contínuo quando a view desaparecer
-            SoundManager.shared.stopContinuousSound()
         }
     }
     
@@ -143,12 +140,6 @@ struct PolaroidRevealView: View {
         
         lastShakeTime = now
         
-        // Inicia o som contínuo apenas na primeira vez
-        if !isRevealing {
-            isRevealing = true
-            SoundManager.shared.playContinuousSound(named: "shakeWind", volume: 0.9)
-        }
-        
         // Reduz a opacidade do overlay progressivamente (mais rápido)
         withAnimation(.easeOut(duration: 0.1)) {
             overlayOpacity = max(0, overlayOpacity - opacityReduction)
@@ -164,11 +155,8 @@ struct PolaroidRevealView: View {
             isRevealed = true
             overlayOpacity = 0
             
-            // Para o som contínuo quando a revelação estiver completa
-            SoundManager.shared.stopContinuousSound()
-            
             // Toca som de conclusão
-            SoundManager.shared.playSound(named: "succe3", volume: 1.0)
+            SoundManager.shared.playSound(named: "succe2", volume: 1.0)
             
             // Toca haptic de conclusão (diferente do contínuo)
             HapticManager.shared.playRevealCompleteHaptic()
