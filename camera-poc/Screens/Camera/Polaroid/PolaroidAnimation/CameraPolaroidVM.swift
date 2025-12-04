@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Foundation
 import RealityKit
 import SwiftUI
 
