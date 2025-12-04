@@ -92,21 +92,17 @@ class Camera3DCoordinator: NSObject, UIGestureRecognizerDelegate {
     }
     
     func applyPlaceholder(to root: Entity) {
-        // Busca o PhotoPlane
         guard let photoPlaneEntity = findModelEntity(named: "PhotoPlane", in: root) else { return }
         
-        // Tenta carregar a imagem 'fundotela' dos Assets ou usa um ícone de sistema como fallback
-        let placeholderImage = UIImage(named: "placeholderImage") ?? UIImage(systemName: "camera.fill")
+        let placeholderImage = UIImage(named: "emptyImage") ?? UIImage(systemName: "camera.fill")
         
         guard let cgImage = placeholderImage?.cgImage else { return }
         
         do {
-            // Cria a textura e o material
             let texture = try TextureResource.generate(from: cgImage, options: .init(semantic: .color))
             var material = UnlitMaterial()
             material.color = .init(tint: .white, texture: .init(texture))
             
-            // Aplica o material ao PhotoPlane
             photoPlaneEntity.model?.materials = [material]
         } catch {
             print("Erro ao aplicar placeholder: \(error)")
@@ -138,6 +134,8 @@ class Camera3DCoordinator: NSObject, UIGestureRecognizerDelegate {
     }
     
     @objc func handlePress(_ recognizer: UILongPressGestureRecognizer) {
+        guard cameraVM.isCameraAuthorized else { return }
+        
         guard let arView = arView else { return }
         let location = recognizer.location(in: arView)
         
@@ -160,6 +158,8 @@ class Camera3DCoordinator: NSObject, UIGestureRecognizerDelegate {
     }
     
     @objc func handlePan(_ recognizer: UIPanGestureRecognizer) {
+        guard cameraVM.isCameraAuthorized else { return }
+        
         guard let arView = arView else { return }
         switch recognizer.state {
         case .began:
