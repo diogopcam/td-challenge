@@ -24,11 +24,10 @@ struct CameraScreen: View {
                     .animation(.easeInOut, value: count)
             }
         }
-        .fullScreenCover(isPresented: $vm.showCapturedPhoto) {
+        .fullScreenCover(isPresented: $vm.showAnimation) {
             if let img = vm.capturedImage {
-                CapturedPhotoView(image: img) {
-                    vm.showCapturedPhoto = false
-                }
+                CameraPolaroidView()
+                    .environmentObject(vm)
             }
         }
     }
