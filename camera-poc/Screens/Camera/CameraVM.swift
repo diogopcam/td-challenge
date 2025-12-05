@@ -25,6 +25,7 @@ class CameraVM: NSObject, ObservableObject, CameraVMProtocol {
     @Published var countdown: Int? = nil
     @Published var currentFrame: UIImage?
     @Published var showCapturedPhoto: Bool = false
+    @Published var muralPhotos: [UIImage] = []
     @Published var exposure: Float = 0.0 {
         didSet {
             setExposureBias(to: exposure)
@@ -39,6 +40,10 @@ class CameraVM: NSObject, ObservableObject, CameraVMProtocol {
     let output = AVCapturePhotoOutput()
     let videoOutput = AVCaptureVideoDataOutput()
     private let context = CIContext()
+    
+    func saveToMural(_ image: UIImage) {
+        muralPhotos.append(image)
+    }
     
     func checkCameraPermission() {
         switch AVCaptureDevice.authorizationStatus(for: .video) {

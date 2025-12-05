@@ -12,7 +12,9 @@ import UIKit
 struct CameraPolaroidView: View {
     @State private var viewModel = CameraPolaroidViewModel()
     @EnvironmentObject var vm: CameraVM
+
     @State var showFinalPolaroid = false
+    @State private var showMural = false
 
     var body: some View {
         ZStack {
@@ -33,60 +35,116 @@ struct CameraPolaroidView: View {
                     content.add(rootAnchor)
                 }
             }
-            
             .edgesIgnoringSafeArea(.all)
-            
+            .allowsHitTesting(!showFinalPolaroid)
+
             .task {
                 await viewModel.loader.loadEntity(name: "cameraPolaroidAnimadaSM")
 
                 if let anchor = viewModel.loader.anchor {
                     viewModel.printAllEntities(anchor)
 
-                    if let data = vm.capturedImage {
-                        if let data = data.pngData() {
-                            await viewModel.updatePolaroid(with: data, in: anchor)
-                        }
+                    if let data = vm.capturedImage,
+                       let png = data.pngData() {
+                        await viewModel.updatePolaroid(with: png, in: anchor)
                     }
                 }
             }
-            
+
             .onTapGesture {
-                // Só permite toque se ainda não mostrou a polaroid final
                 guard !showFinalPolaroid else { return }
+
                 viewModel.playAnimation(in: viewModel.loader.anchor) {
                     withAnimation(.easeOut(duration: 0.6)) {
                         showFinalPolaroid = true
                     }
                 }
             }
-            
+
             if showFinalPolaroid, let img = vm.capturedImage {
-                Polaroid3DView(image: img)
-                    .polaroidTilt() 
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .zIndex(999)
-            }
-            
-            // Botão X para voltar à tela da câmera
-            if showFinalPolaroid {
-                VStack {
-                    HStack {
-                        Spacer()
-                        Button(action: {
-                            vm.showAnimation = false
-                        }) {
-                            Image(systemName: "xmark")
-                                .resizable()
-                                .frame(width: 24, height: 24)
-                                .foregroundColor(.white)
-                                .shadow(radius: 10)
-                                .padding()
+                GeometryReader { geo in
+                    let sideWidth = geo.size.width * 0.35
+
+                    ZStack {
+                        Polaroid3DView(image: img)
+                            .polaroidTilt()
+                            .frame(width: geo.size.width,
+                                   height: geo.size.height,
+                                   alignment: .center)
+                            .zIndex(1)
+
+                        HStack {
+                            ZStack {
+                                Color.clear
+
+                                VStack(spacing: 10) {
+                                    Text("Tap here to discard\nthis photo.")
+                                        .font(.custom("Caption Handwriting Regular", size: 23))
+                                        .foregroundColor(.white)
+                                        .multilineTextAlignment(.center)
+
+                                    Image("discardicon")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 35, height: 35)
+                                }
+                                .rotationEffect(.degrees(-12))
+                            }
+                            .frame(width: sideWidth,
+                                   height: geo.size.height,
+                                   alignment: .center)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                print("👉 Discard tapped")
+                                vm.capturedImage = nil
+                                showFinalPolaroid = false
+                                vm.showAnimation = false
+                            }
+
+                            Spacer(minLength: 0)
+
+                            ZStack {
+                                Color.clear
+
+                                VStack(spacing: 10) {
+                                    Text("Tap here to save\nthis memory.")
+                                        .font(.custom("Caption Handwriting Regular", size: 23))
+                                        .foregroundColor(.white)
+                                        .multilineTextAlignment(.center)
+
+                                    Image("savememoryicon")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 35, height: 35)
+                                }
+                                .rotationEffect(.degrees(12))
+                            }
+                            .frame(width: sideWidth,
+                                   height: geo.size.height,
+                                   alignment: .center)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                print("👉 Save tapped")
+                                vm.saveToMural(img)
+                                showMural = true
+                            }
                         }
+                        .frame(width: geo.size.width,
+                               height: geo.size.height)
+                        .zIndex(2)
                     }
-                    Spacer()
+                    .frame(width: geo.size.width,
+                           height: geo.size.height)
+                    .contentShape(Rectangle())
                 }
-                .zIndex(1000)
+                .ignoresSafeArea()
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .zIndex(50)
             }
+        }
+        .sheet(isPresented: $showMural) {
+            MuralView()
+                .environmentObject(vm)
         }
     }
 }
