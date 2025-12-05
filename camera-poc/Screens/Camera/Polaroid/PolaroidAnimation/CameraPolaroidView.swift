@@ -59,7 +59,7 @@ struct CameraPolaroidView: View {
             }
             
             if showFinalPolaroid, let img = vm.capturedImage {
-                Polaroid3DView(viewModel: Polaroid3DViewModel(image: img))
+                Polaroid3DView(image: img)
                     .polaroidTilt() 
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .zIndex(999)
