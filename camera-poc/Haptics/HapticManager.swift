@@ -1,8 +1,6 @@
 import CoreHaptics
 import UIKit
 
-/// Gerenciador centralizado de feedback háptico usando CoreHaptics
-/// Componentizado para fácil integração em outros projetos
 final class HapticManager {
     static let shared = HapticManager()
 
@@ -15,8 +13,6 @@ final class HapticManager {
             prepareHaptics()
         }
     }
-
-    // MARK: - Engine Management
     
     private func prepareHaptics() {
         guard supportsHaptics else { return }
@@ -46,7 +42,7 @@ final class HapticManager {
         }
     }
 
-    private func ensureEngineRunning() {
+    func ensureEngineRunning() {
         guard supportsHaptics, let engine = engine else { return }
         do {
             try engine.start()
@@ -54,26 +50,35 @@ final class HapticManager {
             print("Failed to start engine: \(error)")
         }
     }
+    
+    func playRevealCompleteHaptic() {
+        guard supportsHaptics else { return }
+        ensureEngineRunning()
 
-    // MARK: - Camera Haptics
-    /// Estilos de haptic para o obturador da câmera
-    enum ShutterStyle: String, CaseIterable, Identifiable {
-        
-        case mechanical = "Mechanical"
-        
-        case heavy = "Heavy"
-        
-        case electronic = "Electronic"
-        
-        case double = "Double"
-        
-        case oldCamera = "Old Camera"
+        let firstPulse = createTransientEvent(intensity: 1.0, sharpness: 0.8, time: 0)
+        let secondPulse = createTransientEvent(intensity: 0.9, sharpness: 0.7, time: 0.15)
+        let thirdPulse = createTransientEvent(intensity: 0.8, sharpness: 0.6, time: 0.3)
 
-        var id: String { rawValue }
+        playPattern(events: [firstPulse, secondPulse, thirdPulse])
+    }
+    
+    func playIntenseRevealHaptic() {
+        guard supportsHaptics else { return }
+        ensureEngineRunning()
+
+        let continuous = CHHapticEvent(
+            eventType: .hapticContinuous,
+            parameters: [
+                CHHapticEventParameter(parameterID: .hapticIntensity, value: 1.0),
+                CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.3),
+            ],
+            relativeTime: 0,
+            duration: 0.3
+        )
+
+        playPattern(events: [continuous])
     }
 
-    /// Reproduz haptic do obturador baseado no estilo selecionado
-    /// - Parameter style: Estilo do haptic do obturador
     func playShutterHaptic(style: ShutterStyle) {
         guard supportsHaptics else { return }
         ensureEngineRunning()
@@ -95,9 +100,8 @@ final class HapticManager {
         
         playPattern(events: events)
     }
-    
-    // MARK: - Shutter Event Builders
-    private func createMechanicalShutterEvents() -> [CHHapticEvent] {
+
+    func createMechanicalShutterEvents() -> [CHHapticEvent] {
         let start = CHHapticEvent(
             eventType: .hapticTransient,
             parameters: [
@@ -129,7 +133,7 @@ final class HapticManager {
         return [start, rumble, end]
     }
     
-    private func createHeavyShutterEvents() -> [CHHapticEvent] {
+    func createHeavyShutterEvents() -> [CHHapticEvent] {
         return [
             CHHapticEvent(
                 eventType: .hapticTransient,
@@ -142,7 +146,7 @@ final class HapticManager {
         ]
     }
     
-    private func createElectronicShutterEvents() -> [CHHapticEvent] {
+    func createElectronicShutterEvents() -> [CHHapticEvent] {
         return [
             CHHapticEvent(
                 eventType: .hapticTransient,
@@ -155,7 +159,7 @@ final class HapticManager {
         ]
     }
     
-    private func createDoubleShutterEvents() -> [CHHapticEvent] {
+    func createDoubleShutterEvents() -> [CHHapticEvent] {
         return [
             CHHapticEvent(
                 eventType: .hapticTransient,
@@ -176,7 +180,7 @@ final class HapticManager {
         ]
     }
     
-    private func createOldCameraShutterEvents() -> [CHHapticEvent] {
+    func createOldCameraShutterEvents() -> [CHHapticEvent] {
         return [
             CHHapticEvent(
                 eventType: .hapticTransient,
@@ -197,8 +201,7 @@ final class HapticManager {
         ]
     }
 
-    // MARK: - Pattern Playback
-    private func playPattern(events: [CHHapticEvent], curves: [CHHapticParameterCurve] = []) {
+    func playPattern(events: [CHHapticEvent], curves: [CHHapticParameterCurve] = []) {
         guard supportsHaptics, let engine = engine else { return }
         
         do {
@@ -210,10 +213,6 @@ final class HapticManager {
         }
     }
 
-    // MARK: - System Haptics
-    /// Reproduz haptic de notificação
-    /// - Parameter type: Tipo de notificação (success, warning, error)
-    /// - Returns: true se o haptic foi reproduzido com sucesso
     @discardableResult
     func notification(_ type: NotificationType) -> Bool {
         guard supportsHaptics else { return false }
@@ -224,7 +223,7 @@ final class HapticManager {
         return true
     }
     
-    private func createNotificationEvents(for type: NotificationType) -> [CHHapticEvent] {
+    func createNotificationEvents(for type: NotificationType) -> [CHHapticEvent] {
         switch type {
         case .success:
             return [
@@ -280,9 +279,6 @@ final class HapticManager {
         }
     }
 
-    /// Reproduz haptic de impacto
-    /// - Parameter style: Estilo do impacto
-    /// - Returns: true se o haptic foi reproduzido com sucesso
     @discardableResult
     func impact(_ style: ImpactStyle) -> Bool {
         guard supportsHaptics else { return false }
@@ -302,18 +298,16 @@ final class HapticManager {
         return true
     }
     
-    private func getImpactParameters(for style: ImpactStyle) -> (intensity: Float, sharpness: Float) {
+    func getImpactParameters(for style: ImpactStyle) -> (intensity: Float, sharpness: Float) {
         switch style {
-        case .light: return (0.4, 0.6)
-        case .medium: return (0.7, 0.7)
-        case .heavy: return (1.0, 0.8)
-        case .soft: return (0.6, 0.3)
-        case .rigid: return (1.0, 1.0)
+            case .light: return (0.4, 0.6)
+            case .medium: return (0.7, 0.7)
+            case .heavy: return (1.0, 0.8)
+            case .soft: return (0.6, 0.3)
+            case .rigid: return (1.0, 1.0)
         }
     }
 
-    /// Reproduz haptic de seleção (leve e preciso)
-    /// - Returns: true se o haptic foi reproduzido com sucesso
     @discardableResult
     func selection() -> Bool {
         guard supportsHaptics else { return false }
@@ -324,30 +318,22 @@ final class HapticManager {
         return true
     }
 
-    // MARK: - Camera Control Haptics
-    /// Haptic personalizado para pressionar o botão do obturador
-    /// Intensidade média-alta para feedback tátil claro
     func shutterPress() {
         guard supportsHaptics else { return }
         ensureEngineRunning()
         
-        // Haptic médio-alto, nítido para o pressionar
         let event = createTransientEvent(intensity: 0.75, sharpness: 0.8, time: 0)
         playPattern(events: [event])
     }
     
-    /// Haptic personalizado para soltar o botão do obturador
-    /// Intensidade média-alta, mais suave que o press
     func shutterRelease() {
         guard supportsHaptics else { return }
         ensureEngineRunning()
         
-        // Haptic médio-alto, mais suave para o soltar
         let event = createTransientEvent(intensity: 0.7, sharpness: 0.5, time: 0)
         playPattern(events: [event])
     }
     
-    /// Feedback háptico para rotação do dial de exposição
     func dialFeedback() {
         guard supportsHaptics else { return }
         ensureEngineRunning()
@@ -356,7 +342,6 @@ final class HapticManager {
         playPattern(events: [event])
     }
 
-    /// Feedback háptico para movimento do slider de timer
     func sliderFeedback() {
         guard supportsHaptics else { return }
         ensureEngineRunning()
@@ -365,7 +350,6 @@ final class HapticManager {
         playPattern(events: [event])
     }
 
-    /// Feedback háptico para ativação/desativação do flash
     func flashFeedback() {
         guard supportsHaptics else { return }
         ensureEngineRunning()
@@ -373,8 +357,7 @@ final class HapticManager {
         let event = createTransientEvent(intensity: 1.0, sharpness: 1.0, time: 0)
         playPattern(events: [event])
     }
-
-    /// Feedback háptico para liberação do botão do obturador
+    
     func buttonRelease() {
         guard supportsHaptics else { return }
         ensureEngineRunning()
@@ -383,7 +366,6 @@ final class HapticManager {
         playPattern(events: [event])
     }
     
-    /// Feedback háptico para agitação da foto Polaroid
     func playShakeHaptic() {
         guard supportsHaptics else { return }
         ensureEngineRunning()
@@ -402,19 +384,14 @@ final class HapticManager {
         playPattern(events: [transient, continuous])
     }
     
-    // MARK: - Printing Haptics
+    var printingHapticPlayer: CHHapticAdvancedPatternPlayer?
     
-    private var printingHapticPlayer: CHHapticAdvancedPatternPlayer?
-    
-    /// Inicia haptic contínuo para impressão da polaroid
     func startPrintingHaptic() {
         guard supportsHaptics else { return }
         ensureEngineRunning()
         
-        // Para qualquer haptic de impressão anterior
         stopPrintingHaptic()
         
-        // Cria um haptic contínuo suave para impressão
         let continuous = CHHapticEvent(
             eventType: .hapticContinuous,
             parameters: [
@@ -422,7 +399,7 @@ final class HapticManager {
                 CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.2),
             ],
             relativeTime: 0,
-            duration: 100.0 // Duração longa, será parado manualmente
+            duration: 100.0
         )
         
         do {
@@ -435,7 +412,6 @@ final class HapticManager {
         }
     }
     
-    /// Para o haptic contínuo de impressão
     func stopPrintingHaptic() {
         do {
             try printingHapticPlayer?.stop(atTime: 0)
@@ -445,9 +421,7 @@ final class HapticManager {
         printingHapticPlayer = nil
     }
     
-    // MARK: - Helper Methods
-    
-    private func createTransientEvent(intensity: Float, sharpness: Float, time: TimeInterval) -> CHHapticEvent {
+    func createTransientEvent(intensity: Float, sharpness: Float, time: TimeInterval) -> CHHapticEvent {
         return CHHapticEvent(
             eventType: .hapticTransient,
             parameters: [
@@ -467,4 +441,19 @@ extension HapticManager {
     enum ImpactStyle {
         case light, medium, heavy, soft, rigid
     }
+}
+
+enum ShutterStyle: String, CaseIterable, Identifiable {
+    
+    case mechanical = "Mechanical"
+    
+    case heavy = "Heavy"
+    
+    case electronic = "Electronic"
+    
+    case double = "Double"
+    
+    case oldCamera = "Old Camera"
+
+    var id: String { rawValue }
 }
