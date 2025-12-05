@@ -8,37 +8,115 @@
 import SwiftUI
 import RealityKit
 import CoreImage
+import Combine
 
 struct Polaroid3DView: View {
     let image: UIImage
+    
+    @StateObject private var shakeManager = ShakeManager()
+    @State private var cancellables = Set<AnyCancellable>()
+    
+    @State private var overlayOpacity: CGFloat = 0.85  // Começa forte
+    @State private var lastShakeTime: Date = Date()
+    @State private var isRevealed: Bool = false
+    
+    private let minShakeInterval: TimeInterval = 0.15
+    private let revealStep: CGFloat = 0.12
+    private let revealThreshold: CGFloat = 0.01
     
     var body: some View {
         RealityView { content in
             
             guard let modelEntity = try? Entity.load(named: "polaroidNew") else {
-                print("Error creating 3D model")
+                print("❌ Error loading 3D model")
                 return
             }
             
-            applyImageWithReveal(entity: modelEntity)
-
+            applyTexture(entity: modelEntity)
+            
             modelEntity.generateCollisionShapes(recursive: true)
-
+            
             let anchor = AnchorEntity(.camera)
             anchor.addChild(modelEntity)
             content.add(anchor)
+            
+            setupShakeDetection(for: modelEntity)
+            
         }
-        .background(.clear)
     }
 }
 
 extension Polaroid3DView {
     
-    // MARK: - Encontra o node correto da foto no modelo
+    // MARK: - Setup Shake Logic
+    private func setupShakeDetection(for model: Entity) {
+        shakeManager.shakeSubject
+            .sink { [self] in
+                self.handleShake(for: model)
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func handleShake(for model: Entity) {
+        let now = Date()
+        
+        guard now.timeIntervalSince(lastShakeTime) >= minShakeInterval else { return }
+        lastShakeTime = now
+        
+        // Revela mais a foto
+        overlayOpacity = max(0, overlayOpacity - revealStep)
+        
+        updateTexture(entity: model)
+        
+        // Haptic contínuo
+        if !isRevealed {
+            HapticManager.shared.playIntenseRevealHaptic()
+        }
+        
+        // Final da revelação
+        if overlayOpacity <= revealThreshold && !isRevealed {
+            isRevealed = true
+            overlayOpacity = 0
+            
+            SoundManager.shared.playSound(named: "succe2", volume: 1.0)
+            HapticManager.shared.playRevealCompleteHaptic()
+        }
+    }
+}
+
+extension Polaroid3DView {
+    
+    // MARK: - Applying Texture
+    private func applyTexture(entity: Entity) {
+        updateTexture(entity: entity)
+    }
+    
+    private func updateTexture(entity: Entity) {
+        guard let polaroidNode = findImagePolaroidEntity(in: entity) else { return }
+        
+        let img = processedImage(intensity: overlayOpacity)
+        guard let cgImage = img.cgImage else { return }
+        
+        do {
+            let texture = try TextureResource(image: cgImage, options: .init(semantic: .color))
+            
+            var material = SimpleMaterial()
+            material.color = .init(tint: .white, texture: .init(texture))
+            polaroidNode.model?.materials = [material]
+            
+        } catch {
+            print("❌ Error updating texture: \(error)")
+        }
+    }
+}
+
+extension Polaroid3DView {
+    
+    // MARK: - Find Polaroid Image Mesh
     func findImagePolaroidEntity(in entity: Entity) -> ModelEntity? {
-        if let me = entity as? ModelEntity,
+        if let m = entity as? ModelEntity,
            entity.name.lowercased().contains("imagepolaroid") {
-            return me
+            return m
         }
         
         for child in entity.children {
@@ -48,61 +126,17 @@ extension Polaroid3DView {
         }
         return nil
     }
+}
+
+extension Polaroid3DView {
     
-    
-    // MARK: - Revelação
-    func applyImageWithReveal(entity: Entity) {
-        guard let imageNode = findImagePolaroidEntity(in: entity) else { return }
-        
-        var intensity: CGFloat = 0.9
-        let steps: CGFloat = 60
-        let interval: TimeInterval = 15 / 60
-        
-        func updateTexture() {
-            let processed = processedImage(intensity: intensity)
-            guard let cg = processed.cgImage else { return }
-            
-            do {
-                let texture = try TextureResource(
-                    image: cg,
-                    options: .init(semantic: .color)
-                )
-                
-                var material = SimpleMaterial()
-                material.color = .init(tint: .white, texture: .init(texture))
-                imageNode.model?.materials = [material]
-                
-            } catch {
-                print("Error creating textures: \(error)")
-            }
-        }
-        
-        updateTexture()
-        
-        Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { t in
-            intensity -= 0.9 / steps
-            
-            if intensity <= 0 {
-                intensity = 0
-                updateTexture()
-                t.invalidate()
-                return
-            }
-            
-            updateTexture()
-        }
-    }
-    
-    
-    // MARK: - Pipeline de processamento completo
+    // MARK: - Full Processing Pipeline
     func processedImage(intensity: CGFloat) -> UIImage {
         let normalized = fixImageOrientation(image)
         let flipped = flipImageHorizontally(normalized) ?? normalized
         
-        // Novo filtro Polaroid
         let filtered = applyPolaroidFilter(to: flipped) ?? flipped
         
-        // Revelação (overlay escuro que some aos poucos)
         return applyGrayOverlay(
             to: filtered,
             gray: UIColor(white: 0.02, alpha: 1),
@@ -111,44 +145,41 @@ extension Polaroid3DView {
     }
     
     
-    // MARK: - Filtro Polaroid antigo
+    // MARK: - Polaroid Filter
     func applyPolaroidFilter(to image: UIImage) -> UIImage? {
         guard let ciInput = CIImage(image: image) else { return nil }
-        
-        guard let ciOutput = applyPolaroidEffect(to: ciInput) else { return nil }
+        guard let ciOut = applyPolaroidEffect(to: ciInput) else { return nil }
         
         let context = CIContext()
-        guard let cg = context.createCGImage(ciOutput, from: ciOutput.extent) else {
-            return nil
-        }
+        guard let cg = context.createCGImage(ciOut, from: ciOut.extent) else { return nil }
         
-        return UIImage(cgImage: cg, scale: image.scale, orientation: image.imageOrientation)
+        return UIImage(cgImage: cg)
     }
     
-    func applyPolaroidEffect(to inputImage: CIImage) -> CIImage? {
-        let instant = CIFilter.photoEffectInstant()
-        instant.inputImage = inputImage
+    func applyPolaroidEffect(to ci: CIImage) -> CIImage? {
+        let f = CIFilter.photoEffectInstant()
+        f.inputImage = ci
         
-        guard let instantOutput = instant.outputImage else { return nil }
+        guard let instantOut = f.outputImage else { return nil }
         
-        let vignette = CIFilter.vignette()
-        vignette.inputImage = instantOutput
-        vignette.intensity = 0.5
-        vignette.radius = 1.2
+        let v = CIFilter.vignette()
+        v.inputImage = instantOut
+        v.intensity = 0.5
+        v.radius = 1.2
         
-        return vignette.outputImage
+        return v.outputImage
     }
     
     
-    // MARK: - Utilidades
+    // MARK: - Utility Functions
     func fixImageOrientation(_ img: UIImage) -> UIImage {
         if img.imageOrientation == .up { return img }
         
         UIGraphicsBeginImageContextWithOptions(img.size, false, img.scale)
         img.draw(in: CGRect(origin: .zero, size: img.size))
-        let result = UIGraphicsGetImageFromCurrentImageContext()!
+        let r = UIGraphicsGetImageFromCurrentImageContext()!
         UIGraphicsEndImageContext()
-        return result
+        return r
     }
     
     func flipImageHorizontally(_ img: UIImage) -> UIImage? {
@@ -157,20 +188,18 @@ extension Polaroid3DView {
         ctx.translateBy(x: img.size.width, y: 0)
         ctx.scaleBy(x: -1, y: 1)
         img.draw(in: CGRect(origin: .zero, size: img.size))
-        let out = UIGraphicsGetImageFromCurrentImageContext()
+        let r = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
-        return out
+        return r
     }
     
-    func applyGrayOverlay(to image: UIImage,
-                          gray: UIColor,
-                          intensity: CGFloat) -> UIImage? {
+    func applyGrayOverlay(to img: UIImage, gray: UIColor, intensity: CGFloat) -> UIImage? {
+        let rect = CGRect(origin: .zero, size: img.size)
         
-        let rect = CGRect(origin: .zero, size: image.size)
-        UIGraphicsBeginImageContextWithOptions(image.size, false, image.scale)
-        guard let ctx = UIGraphicsGetCurrentContext() else { return nil }
+        UIGraphicsBeginImageContextWithOptions(img.size, false, img.scale)
+        let ctx = UIGraphicsGetCurrentContext()!
         
-        image.draw(in: rect)
+        img.draw(in: rect)
         
         ctx.setFillColor(gray.withAlphaComponent(intensity).cgColor)
         ctx.fill(rect)
