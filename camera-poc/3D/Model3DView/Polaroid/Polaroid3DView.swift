@@ -16,7 +16,7 @@ struct Polaroid3DView: View {
         RealityView { content in
             
             guard let modelEntity = try? Entity.load(named: "polaroidNew") else {
-                print("❌ Erro ao carregar modelo 3D")
+                print("Error creating 3D model")
                 return
             }
             
@@ -73,7 +73,7 @@ extension Polaroid3DView {
                 imageNode.model?.materials = [material]
                 
             } catch {
-                print("❌ Erro criando textura: \(error)")
+                print("Error creating textures: \(error)")
             }
         }
         

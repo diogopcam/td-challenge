@@ -31,6 +31,7 @@ class CameraVM: NSObject, ObservableObject, CameraVMProtocol {
         }
     }
     @Published var showAnimation: Bool = false
+    @Published var shouldNavigateToMural: Bool = false
     
     var currentFramePublisher: Published<UIImage?>.Publisher { $currentFrame }
     
@@ -174,8 +175,6 @@ extension CameraVM: AVCapturePhotoCaptureDelegate {
             } else {
                 self.capturedImage = image
             }
-            
-//            self.showCapturedPhoto = true
         }
     }
 }

@@ -15,10 +15,8 @@ struct PolaroidProcessingPipeline {
         let oriented = fixImageOrientation(image)
         let flipped = flipImageHorizontally(oriented) ?? oriented
 
-        // 1️⃣ filtro polaroid
         let filtered = applyPolaroidFilter(to: flipped) ?? flipped
 
-        // 2️⃣ overlay cinza por cima
         return applyGrayOverlay(
             to: filtered,
             gray: UIColor(white: 0.02, alpha: 1),
@@ -26,7 +24,6 @@ struct PolaroidProcessingPipeline {
         ) ?? filtered
     }
 
-    // MARK: - (mesmas funções da sua ViewModel + View)
     private static func fixImageOrientation(_ image: UIImage) -> UIImage {
         if image.imageOrientation == .up { return image }
         UIGraphicsBeginImageContextWithOptions(image.size, false, image.scale)
