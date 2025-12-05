@@ -66,7 +66,6 @@ struct CameraPolaroidView: View {
                     let sideWidth = geo.size.width * 0.35
 
                     ZStack {
-                        // Polaroid central
                         Polaroid3DView(image: img)
                             .polaroidTilt()
                             .frame(width: geo.size.width,
@@ -74,11 +73,9 @@ struct CameraPolaroidView: View {
                                    alignment: .center)
                             .zIndex(1)
 
-                        // Botões laterais
                         HStack {
-                            // DESCARTAR (lado esquerdo)
                             ZStack {
-                                Color.clear   // só pra ter uma área visível pra toque
+                                Color.clear
 
                                 VStack(spacing: 10) {
                                     Text("Tap here to discard\nthis photo.")
@@ -91,7 +88,6 @@ struct CameraPolaroidView: View {
                                         .scaledToFit()
                                         .frame(width: 35, height: 35)
                                 }
-                                // rotaciona TUDO junto (texto + ícone)
                                 .rotationEffect(.degrees(-12))
                             }
                             .frame(width: sideWidth,
@@ -101,13 +97,12 @@ struct CameraPolaroidView: View {
                             .onTapGesture {
                                 print("👉 Discard tapped")
                                 vm.capturedImage = nil
-                                showFinalPolaroid = false      // some só o overlay
+                                showFinalPolaroid = false
                                 vm.showAnimation = false
                             }
 
                             Spacer(minLength: 0)
 
-                            // SALVAR (lado direito)
                             ZStack {
                                 Color.clear
 
