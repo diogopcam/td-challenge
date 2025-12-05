@@ -12,14 +12,11 @@ class FlashButton {
     
     private let entity: Entity
     private let baseOrientation: simd_quatf
-    
     private let ledEntity: ModelEntity
     private let ledOnMaterial: SimpleMaterial
     private let ledOffMaterial: SimpleMaterial
-    
     private(set) var isOn: Bool = true
     var onToggle: ((Bool) -> Void)?
-    
     private let haptic = UIImpactFeedbackGenerator(style: .light)
     
     init?(rootEntity: Entity, entityName: String) {
@@ -42,12 +39,10 @@ class FlashButton {
 
         let led = ModelEntity(mesh: mesh, materials: [ledOffMaterial])
 
-        // bounds do botão
         let bounds  = buttonModel.visualBounds(relativeTo: buttonModel)
         let center  = bounds.center
         let extents = bounds.extents
 
-        // ponto de partida: centro do botão
         let offsetX: Float =  0.002999999999999999999   // esquerda/direita
         let offsetY: Float =  0.003999   // pra dentro/fora da camera
         let offsetZ: Float =  -0.00699 // cima/baixo
@@ -58,7 +53,6 @@ class FlashButton {
             center.z + extents.z / 2 + radius + offsetZ
         )
 
-        // tamanho
         led.setScale(SIMD3<Float>(repeating: 0.5), relativeTo: buttonModel)
 
         buttonModel.addChild(led)
@@ -79,7 +73,7 @@ class FlashButton {
     func handleTap() {
         
         if !ButtonManager.shared.isEnabled {
-             SoundManager.shared.playSound(named: "disableButton1")
+             SoundManager.shared.playSound(named: "disableof")
              return
         }
         
