@@ -36,5 +36,8 @@ struct CameraScreen: View {
                     .environmentObject(vm)
             }
         }
+        .fullScreenCover(isPresented: $vm.shouldNavigateToMural) {
+            MuralPlaceholderView()
+        }
     }
 }

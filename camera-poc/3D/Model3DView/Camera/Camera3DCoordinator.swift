@@ -27,6 +27,7 @@ class Camera3DCoordinator: NSObject, UIGestureRecognizerDelegate {
     var timerSlider: TimerSlider?
     var captureButton: CaptureButton?
     var flashButton: FlashButton?
+    var cameraToMuralButton: CameraToMuralButton?
     
     private var activeKnob: ExposureButton?
     private var activeSlider: TimerSlider?
@@ -89,6 +90,26 @@ class Camera3DCoordinator: NSObject, UIGestureRecognizerDelegate {
             }
 
         }
+        
+        if let mural = CameraToMuralButton(rootEntity: root, entityName: "MuralButton") {
+            self.cameraToMuralButton = mural
+            
+            mural.onRelease = { [weak self] in
+                guard let self = self else { return }
+                
+                if self.cameraVM.timerDelay > 0 {
+                    mural.disable()
+                    
+                    self.cameraVM.onCountdownFinished = {
+                        mural.enable()
+                    }
+                }
+                
+                DispatchQueue.main.async {
+                    self.cameraVM.shouldNavigateToMural = true
+                }
+            }
+        }
     }
     
     func applyPlaceholder(to root: Entity) {
@@ -145,9 +166,16 @@ class Camera3DCoordinator: NSObject, UIGestureRecognizerDelegate {
                 if let capture = captureButton, capture.represents(hitEntity) {
                     capture.press()
                 }
+                if let mural = cameraToMuralButton, mural.represents(hitEntity) {
+                    mural.press()
+                }
             }
+            
         case .ended, .cancelled:
             captureButton?.release()
+            if let mural = cameraToMuralButton {
+                 mural.release() 
+            }
             if let hitEntity = arView.entity(at: location) {
                 if let flash = flashButton, flash.represents(hitEntity) {
                     flash.handleTap()

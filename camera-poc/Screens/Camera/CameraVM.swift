@@ -31,6 +31,7 @@ class CameraVM: NSObject, ObservableObject, CameraVMProtocol {
         }
     }
     @Published var showAnimation: Bool = false
+    @Published var shouldNavigateToMural: Bool = false
     
     var currentFramePublisher: Published<UIImage?>.Publisher { $currentFrame }
     
