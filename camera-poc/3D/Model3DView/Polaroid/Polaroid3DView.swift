@@ -68,7 +68,6 @@ extension Polaroid3DView {
         
         updateTexture(entity: model)
         
-        // Haptic contínuo
         if !isRevealed {
             HapticManager.shared.playIntenseRevealHaptic()
         }
