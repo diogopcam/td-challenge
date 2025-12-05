@@ -402,6 +402,49 @@ final class HapticManager {
         playPattern(events: [transient, continuous])
     }
     
+    // MARK: - Printing Haptics
+    
+    private var printingHapticPlayer: CHHapticAdvancedPatternPlayer?
+    
+    /// Inicia haptic contínuo para impressão da polaroid
+    func startPrintingHaptic() {
+        guard supportsHaptics else { return }
+        ensureEngineRunning()
+        
+        // Para qualquer haptic de impressão anterior
+        stopPrintingHaptic()
+        
+        // Cria um haptic contínuo suave para impressão
+        let continuous = CHHapticEvent(
+            eventType: .hapticContinuous,
+            parameters: [
+                CHHapticEventParameter(parameterID: .hapticIntensity, value: 0.6),
+                CHHapticEventParameter(parameterID: .hapticSharpness, value: 0.2),
+            ],
+            relativeTime: 0,
+            duration: 100.0 // Duração longa, será parado manualmente
+        )
+        
+        do {
+            let pattern = try CHHapticPattern(events: [continuous], parameterCurves: [])
+            let player = try engine?.makeAdvancedPlayer(with: pattern)
+            try player?.start(atTime: 0)
+            printingHapticPlayer = player
+        } catch {
+            print("Failed to start printing haptic: \(error)")
+        }
+    }
+    
+    /// Para o haptic contínuo de impressão
+    func stopPrintingHaptic() {
+        do {
+            try printingHapticPlayer?.stop(atTime: 0)
+        } catch {
+            print("Failed to stop printing haptic: \(error)")
+        }
+        printingHapticPlayer = nil
+    }
+    
     // MARK: - Helper Methods
     
     private func createTransientEvent(intensity: Float, sharpness: Float, time: TimeInterval) -> CHHapticEvent {

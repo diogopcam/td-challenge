@@ -8,6 +8,7 @@
 import SwiftUI
 import Combine
 import RealityKit
+import CoreImage
 
 class Camera3DCoordinator: NSObject, UIGestureRecognizerDelegate {
     weak var arView: ARView?
@@ -132,7 +133,10 @@ class Camera3DCoordinator: NSObject, UIGestureRecognizerDelegate {
     
     func applyCameraImage(_ image: UIImage, to root: Entity) {
         guard let photoPlaneEntity = findModelEntity(named: "PhotoPlane", in: root) else { return }
-        guard let cgImage = image.cgImage else { return }
+        
+        // Processa a imagem para manter a proporção correta
+        let processedImage = processImageForTexture(image)
+        guard let cgImage = processedImage.cgImage else { return }
         
         do {
             let texture = try TextureResource.generate(from: cgImage, options: .init(semantic: .color))
@@ -140,6 +144,70 @@ class Camera3DCoordinator: NSObject, UIGestureRecognizerDelegate {
             material.color = .init(tint: .white, texture: .init(texture))
             photoPlaneEntity.model?.materials = [material]
         } catch { print(error) }
+    }
+    
+    /// Processa a imagem para manter a proporção correta, cortando para caber no modelo
+    private func processImageForTexture(_ image: UIImage) -> UIImage {
+        // O modelo PhotoPlane provavelmente é quadrado (1:1), então vamos cortar a imagem para quadrado
+        let targetAspectRatio: CGFloat = 1.0 // Quadrado
+        let imageSize = image.size
+        let imageAspectRatio = imageSize.width / imageSize.height
+        
+        var cropRect: CGRect
+        
+        if imageAspectRatio > targetAspectRatio {
+            // Imagem é mais larga - corta as laterais
+            let newWidth = imageSize.height * targetAspectRatio
+            let xOffset = (imageSize.width - newWidth) / 2
+            cropRect = CGRect(x: xOffset, y: 0, width: newWidth, height: imageSize.height)
+        } else {
+            // Imagem é mais alta - corta o topo e fundo
+            let newHeight = imageSize.width / targetAspectRatio
+            let yOffset = (imageSize.height - newHeight) / 2
+            cropRect = CGRect(x: 0, y: yOffset, width: imageSize.width, height: newHeight)
+        }
+        
+        guard let cgImage = image.cgImage?.cropping(to: cropRect) else {
+            return image // Retorna original se não conseguir cortar
+        }
+        
+        let croppedImage = UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
+        
+        // Aplica filtro de polaroid (overlay cinza)
+        return applyPolaroidFilter(to: croppedImage) ?? croppedImage
+    }
+    
+    /// Aplica filtro de polaroid antiga usando Core Image
+    private func applyPolaroidFilter(to image: UIImage) -> UIImage? {
+        guard let ciImage = CIImage(image: image) else { return image }
+        
+        guard let filteredImage = applyPolaroidEffect(to: ciImage) else { return image }
+        
+        let context = CIContext()
+        guard let cgImage = context.createCGImage(filteredImage, from: filteredImage.extent) else {
+            return image
+        }
+        
+        return UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
+    }
+    
+    /// Aplica efeito de polaroid antiga usando Core Image filters
+    private func applyPolaroidEffect(to inputImage: CIImage) -> CIImage? {
+        // 1. Aplicar efeito instantâneo (look vintage)
+        let instantFilter = CIFilter.photoEffectInstant()
+        instantFilter.inputImage = inputImage
+        
+        guard let instantOutput = instantFilter.outputImage else {
+            return nil
+        }
+        
+        // 2. Aplicar vinheta suave (cantos levemente escurecidos, mais autêntico)
+        let vignetteFilter = CIFilter.vignette()
+        vignetteFilter.inputImage = instantOutput
+        vignetteFilter.intensity = 0.5  // Reduzido de 1.0 para menos escuro
+        vignetteFilter.radius = 1.2     // Aumentado de 2.0 para vinheta mais suave
+        
+        return vignetteFilter.outputImage
     }
     
     private func findModelEntity(named name: String, in root: Entity) -> ModelEntity? {

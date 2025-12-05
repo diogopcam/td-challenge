@@ -100,7 +100,7 @@ class CameraVM: NSObject, ObservableObject, CameraVMProtocol {
         }
         
         if let videoConnection = videoOutput.connection(with: .video) {
-            videoConnection.videoOrientation = .landscapeLeft
+            videoConnection.videoRotationAngle = 0
         }
     }
     
@@ -227,7 +227,7 @@ extension CameraVM {
         }
 
         if let connection = output.connection(with: .video) {
-            connection.videoOrientation = .landscapeLeft
+            connection.videoRotationAngle = 0 // landscapeLeft
         }
 
         output.capturePhoto(with: settings, delegate: self)
