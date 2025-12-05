@@ -15,6 +15,26 @@ class CameraPolaroidViewModel {
 
     let loader = RootEntityLoader()
     private var hasPlayedAnimation = false
+    
+    func applyGrayOverlay(to image: UIImage,
+                          gray: UIColor,
+                          intensity: CGFloat) -> UIImage? {
+
+        let rect = CGRect(origin: .zero, size: image.size)
+        UIGraphicsBeginImageContextWithOptions(image.size, false, image.scale)
+
+        guard let context = UIGraphicsGetCurrentContext() else { return nil }
+
+        image.draw(in: rect)
+
+        context.setFillColor(gray.withAlphaComponent(intensity).cgColor)
+        context.fill(rect)
+
+        let result = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        return result
+    }
+    
     /// Aplica filtro de polaroid antiga usando Core Image
     private func applyPolaroidFilter(to image: UIImage) -> UIImage? {
         guard let ciImage = CIImage(image: image) else { return image }
@@ -56,12 +76,24 @@ class CameraPolaroidViewModel {
             return
         }
 
-        // Aplica filtro de polaroid antiga usando Core Image
         guard let filteredImage = applyPolaroidFilter(to: uiImage),
               let tintedCG = filteredImage.cgImage else {
             print("Erro aplicando filtro de polaroid")
             return
         }
+        
+        let overlayColor = UIColor.gray
+        let overlayIntensity: CGFloat = 1
+        
+        guard let finalImage = applyGrayOverlay(
+            to: filteredImage,
+            gray: overlayColor,
+            intensity: overlayIntensity
+        ), let finalCG = finalImage.cgImage else {
+            print("Erro aplicando overlay cinza")
+            return
+        }
+        
 
         guard let target = findEntity(named: "imagePolaroid_001", in: anchor) as? ModelEntity else {
             print("Polaroid não encontrada")
@@ -69,7 +101,11 @@ class CameraPolaroidViewModel {
         }
 
         do {
-            let texture = try await TextureResource(image: tintedCG, options: .init(semantic: .color))
+            let texture = try await TextureResource(
+                image: finalCG,
+                options: .init(semantic: .color)
+            )
+
             var material = PhysicallyBasedMaterial()
             material.baseColor = .init(texture: .init(texture))
 
