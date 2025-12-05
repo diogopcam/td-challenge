@@ -131,7 +131,6 @@ class CameraPolaroidViewModel {
     }
 
     func playAnimation(in anchor: AnchorEntity?, completion: @escaping () -> Void) {
-        // Previne múltiplas execuções da animação
         guard !hasPlayedAnimation else { return }
         guard let anchor = anchor else { return }
 
@@ -152,21 +151,18 @@ class CameraPolaroidViewModel {
             return
         }
 
-        // Inicia haptic e som de impressão
         HapticManager.shared.startPrintingHaptic()
         SoundManager.shared.playContinuousSound(named: "printing", volume: 0.4)
 
         entity.playAnimation(anim.repeat(count: 1), transitionDuration: 0.3)
 
         let duration = anim.definition.duration
-        let soundDuration = duration * 0.5 // Som toca por 70% da duração da animação
+        let soundDuration = duration * 0.5
         
-        // Para o som antes do término da animação
         DispatchQueue.main.asyncAfter(deadline: .now() + soundDuration) {
             SoundManager.shared.stopContinuousSound()
         }
         
-        // Para o haptic e chama completion quando a animação terminar
         DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
             HapticManager.shared.stopPrintingHaptic()
             completion()
