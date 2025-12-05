@@ -13,10 +13,9 @@ class CaptureButton {
     private let entity: Entity
     private let baseTransform: Transform
     private var isEnabled = true
+    private var isPressed = false
     
     var onCapture: (() -> Void)?
-    
-    private var isPressed = false
     
     init?(rootEntity: Entity, entityName: String) {
         guard let found = rootEntity.findEntity(named: entityName) else {
@@ -39,7 +38,7 @@ class CaptureButton {
     
     func press() {
         if !ButtonManager.shared.isEnabled {
-            SoundManager.shared.playSound(named: "disableButton1")
+            SoundManager.shared.playSound(named: "disableof")
             return
         }
         

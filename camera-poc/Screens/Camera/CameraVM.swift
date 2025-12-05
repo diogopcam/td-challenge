@@ -225,7 +225,7 @@ extension CameraVM {
         }
 
         if let connection = output.connection(with: .video) {
-            connection.videoRotationAngle = 0 // landscapeLeft
+            connection.videoRotationAngle = 0
         }
 
         output.capturePhoto(with: settings, delegate: self)

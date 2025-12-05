@@ -12,11 +12,9 @@ class ExposureButton {
     
     private let entity: Entity
     private let baseOrientation: simd_quatf
-    
     private(set) var value: Float = 0.0
     private var lastAngle: Float = 0.0
     private var centerScreenPosition: CGPoint = .zero
-    
     private var lastStepValue: Float = 0.0
     
     var onValueChange: ((Float) -> Void)?
@@ -46,7 +44,7 @@ class ExposureButton {
         if !ButtonManager.shared.isEnabled {
             if recognizer.state == .began {
                 HapticManager.shared.impact(.light)
-                SoundManager.shared.playSound(named: "disableButton1")
+                SoundManager.shared.playSound(named: "disableof")
             }
             
             return

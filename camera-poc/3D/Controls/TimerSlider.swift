@@ -14,15 +14,13 @@ class TimerSlider {
     private let pos0: SIMD3<Float>
     private let pos5: SIMD3<Float>
     private let pos10: SIMD3<Float>
-    
+    private var startProgress: Float = 0.0
+    private var touchStartLocation: CGPoint = .zero
+    private var screenTrackVector: CGPoint = .zero
     private(set) var selectedValue: Int = 0
     private var currentProgress: Float = 0.0
     
     var onValueChange: ((Int) -> Void)?
-    
-    private var startProgress: Float = 0.0
-    private var touchStartLocation: CGPoint = .zero
-    private var screenTrackVector: CGPoint = .zero
     
     init?(rootEntity: Entity) {
         guard let knob = rootEntity.findEntity(named: "TimerKnob"),
@@ -57,7 +55,7 @@ class TimerSlider {
         if !ButtonManager.shared.isEnabled {
             if recognizer.state == .began {
                 HapticManager.shared.impact(.light)
-                SoundManager.shared.playSound(named: "disableButton1")
+                SoundManager.shared.playSound(named: "disableof")
             }
 
             return
@@ -123,8 +121,7 @@ class TimerSlider {
         }
     }
 
-    
-    private func updateKnobPosition(progress: Float) {
+    func updateKnobPosition(progress: Float) {
         self.currentProgress = progress
         
         let newPos: SIMD3<Float>

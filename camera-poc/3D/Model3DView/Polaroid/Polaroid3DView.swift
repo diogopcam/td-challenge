@@ -77,7 +77,7 @@ extension Polaroid3DView {
             isRevealed = true
             overlayOpacity = 0
             
-            SoundManager.shared.playSound(named: "succe2", volume: 1.0)
+            SoundManager.shared.playSound(named: "polaroidRevealed", volume: 1.0)
             HapticManager.shared.playRevealCompleteHaptic()
         }
     }
