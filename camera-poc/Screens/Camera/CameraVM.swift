@@ -175,8 +175,6 @@ extension CameraVM: AVCapturePhotoCaptureDelegate {
             } else {
                 self.capturedImage = image
             }
-            
-//            self.showCapturedPhoto = true
         }
     }
 }
